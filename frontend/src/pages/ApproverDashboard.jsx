@@ -144,10 +144,11 @@ export default function ApproverDashboard() {
   return (
     <div className="dashboard-layout">
       <div className="sidebar">
-        {TABS.map(t => (
-          <div key={t} className={`sidebar-item ${tab === t ? 'active' : ''}`} onClick={() => setTab(t)}>
-        {t === 'Dashboard' ? '🏠' : t === 'Pending' ? '⏳' : '📋'} {tab === 'Dashboard' ? t.dashboard : tab === 'Pending' ? t.pendingTab : t.allRequests}
-            {t === 'Pending' && pending.length > 0 && (
+        {TABS.map(tabKey => (
+          <div key={tabKey} className={`sidebar-item ${tab === tabKey ? 'active' : ''}`} onClick={() => setTab(tabKey)}>
+            {tabKey === 'Dashboard' ? '🏠' : tabKey === 'Pending' ? '⏳' : '📋'}
+            {' '}{tabKey === 'Dashboard' ? t.dashboard : tabKey === 'Pending' ? t.pendingTab : t.allRequests}
+            {tabKey === 'Pending' && pending.length > 0 && (
               <span style={{marginLeft:'auto', background:'#e65100', color:'white', borderRadius:'50%', width:20, height:20, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.75rem'}}>{pending.length}</span>
             )}
           </div>

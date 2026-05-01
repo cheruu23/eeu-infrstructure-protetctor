@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: eeu-backend
+    env: node
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: PORT
+        value: 5000
+      - key: DB_HOST
+        fromDatabase:
+          name: eeu-db
+          property: host
+      - key: DB_USER
+        fromDatabase:
+          name: eeu-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: eeu-db
+          property: password
+      - key: DB_NAME
+        fromDatabase:
+          name: eeu-db
+          property: database
+      - key: JWT_SECRET
+        generateValue: true

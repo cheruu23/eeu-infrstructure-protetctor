@@ -16,6 +16,18 @@ router.get('/infrastructure/lookup/:asset_code', verifyToken, async (req, res) =
   }
 });
 
+// List all active infrastructure assets (for dropdowns / map)
+router.get('/infrastructure', verifyToken, async (req, res) => {
+  try {
+    const [assets] = await db.query(
+      "SELECT id, asset_code, asset_type, description, location, latitude, longitude, status FROM infrastructure ORDER BY asset_code ASC"
+    );
+    res.json({ assets });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
 // Citizen: Submit infrastructure damage report
 // Works with QR scan (infrastructure_id filled) OR manual (no infrastructure_id)
 router.post('/', verifyToken, requireRole(['citizen']), async (req, res) => {

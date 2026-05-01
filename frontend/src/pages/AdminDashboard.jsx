@@ -70,23 +70,23 @@ export default function AdminDashboard() {
   };
 
   const fetchAll = async () => {
-    try {
-      const [s, i, r, sr, t] = await Promise.all([
-        api.get('/admin/stats'),
-        api.get('/admin/infrastructure'),
-        api.get('/admin/reports'),
-        api.get('/admin/service-requests'),
-        api.get('/approver/teams'),
-      ]);
-      setStats(s.data);
-      setInfrastructure(i.data.assets);
-      setReports(r.data.reports);
-      setServiceRequests(sr.data.requests);
-      setTeams(t.data.teams);
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to load data');
-    }
-    // fetch users separately so a failure in one doesn't block the other
+    const safe = async (fn, fallback) => { try { return await fn(); } catch { return fallback; } };
+
+    const [s, i, r, sr, g] = await Promise.all([
+      safe(() => api.get('/admin/stats'),            { data: {} }),
+      safe(() => api.get('/admin/infrastructure'),   { data: { assets: [] } }),
+      safe(() => api.get('/admin/reports'),          { data: { reports: [] } }),
+      safe(() => api.get('/admin/service-requests'), { data: { requests: [] } }),
+      safe(() => api.get('/groups'),                 { data: { groups: [] } }),
+    ]);
+
+    setStats(s.data);
+    setInfrastructure(i.data.assets || []);
+    setReports(r.data.reports || []);
+    setServiceRequests(sr.data.requests || []);
+    // use groups as teams for report assignment
+    setTeams((g.data.groups || []).map(grp => ({ id: grp.id, team_name: grp.name })));
+
     fetchUsers();
     fetchGroups();
   };

@@ -19,31 +19,36 @@ function PrivateRoute({ children, role }) {
 
 function AppRoutes() {
   const { user } = useAuth();
+  // Show navbar on all pages except home and login
+  const showNavbar = user !== null;
+
   return (
     <>
-      {user && <Navbar />}
+      {showNavbar && <Navbar />}
       <Routes>
-        <Route path="/"         element={user ? <Navigate to={`/${user.role}`} /> : <Home />} />
-        <Route path="/login"    element={user ? <Navigate to={`/${user.role}`} /> : <Login />} />
-        <Route path="/citizen"  element={<PrivateRoute role="citizen"><CitizenDashboard /></PrivateRoute>} />
-        <Route path="/approver" element={<PrivateRoute role="approver"><ApproverDashboard /></PrivateRoute>} />
+        <Route path="/"            element={user ? <Navigate to={`/${user.role}`} /> : <Home />} />
+        <Route path="/login"       element={user ? <Navigate to={`/${user.role}`} /> : <Login />} />
+        <Route path="/citizen"     element={<PrivateRoute role="citizen"><CitizenDashboard /></PrivateRoute>} />
+        <Route path="/approver"    element={<PrivateRoute role="approver"><ApproverDashboard /></PrivateRoute>} />
         <Route path="/electrician" element={<PrivateRoute role="electrician"><ElectricianDashboard /></PrivateRoute>} />
-        <Route path="/admin"    element={<PrivateRoute role="admin"><AdminDashboard /></PrivateRoute>} />
-        <Route path="*"         element={<Navigate to={user ? `/${user.role}` : '/'} />} />
+        <Route path="/admin"       element={<PrivateRoute role="admin"><AdminDashboard /></PrivateRoute>} />
+        <Route path="*"            element={<Navigate to={user ? `/${user.role}` : '/'} />} />
       </Routes>
     </>
   );
 }
 
+// AuthProvider must be INSIDE BrowserRouter so useNavigate works in AuthContext if needed
+// LangProvider and ToastProvider wrap everything so all components can use them
 export default function App() {
   return (
     <BrowserRouter>
       <LangProvider>
-        <ToastProvider>
-          <AuthProvider>
+        <AuthProvider>
+          <ToastProvider>
             <AppRoutes />
-          </AuthProvider>
-        </ToastProvider>
+          </ToastProvider>
+        </AuthProvider>
       </LangProvider>
     </BrowserRouter>
   );

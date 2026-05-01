@@ -8,42 +8,35 @@ router.use(verifyToken, requireRole(['admin']));
 
 // ── Dashboard stats ──────────────────────────────────────────
 router.get('/stats', async (req, res) => {
+  const safeCount = async (sql) => {
+    try { const [[r]] = await db.query(sql); return r.count || 0; } catch { return 0; }
+  };
+  const safeQuery = async (sql) => {
+    try { const [rows] = await db.query(sql); return rows; } catch { return []; }
+  };
+
   try {
-    const [[users]]    = await db.query('SELECT COUNT(*) as count FROM users');
-    const [[requests]] = await db.query('SELECT COUNT(*) as count FROM service_requests');
-    const [[reports]]  = await db.query('SELECT COUNT(*) as count FROM infrastructure_reports');
-    const [[infra]]    = await db.query('SELECT COUNT(*) as count FROM infrastructure');
-    const [[pending]]  = await db.query("SELECT COUNT(*) as count FROM service_requests WHERE status='pending'");
-    const [[openRep]]  = await db.query("SELECT COUNT(*) as count FROM infrastructure_reports WHERE status='open'");
-    const [[damaged]]  = await db.query("SELECT COUNT(*) as count FROM infrastructure WHERE status='damaged'");
+    const [users, requests, reports, infra, pending, openRep, damaged] = await Promise.all([
+      safeCount('SELECT COUNT(*) as count FROM users'),
+      safeCount('SELECT COUNT(*) as count FROM service_requests'),
+      safeCount('SELECT COUNT(*) as count FROM infrastructure_reports'),
+      safeCount('SELECT COUNT(*) as count FROM infrastructure'),
+      safeCount("SELECT COUNT(*) as count FROM service_requests WHERE status='pending'"),
+      safeCount("SELECT COUNT(*) as count FROM infrastructure_reports WHERE status='open'"),
+      safeCount("SELECT COUNT(*) as count FROM infrastructure WHERE status='damaged'"),
+    ]);
 
-    // Chart data: requests by status
-    const [byStatus] = await db.query('SELECT status, COUNT(*) as count FROM service_requests GROUP BY status');
-
-    // Chart data: requests by category
-    const [byCategory] = await db.query('SELECT category, COUNT(*) as count FROM service_requests GROUP BY category');
-
-    // Chart data: reports by type
-    const [reportsByType] = await db.query('SELECT report_type, COUNT(*) as count FROM infrastructure_reports GROUP BY report_type');
-
-    // Chart data: users by role
-    const [usersByRole] = await db.query('SELECT role, COUNT(*) as count FROM users GROUP BY role');
-
-    // Chart data: requests per month (last 6 months)
-    const [requestsPerMonth] = await db.query(`
-      SELECT DATE_FORMAT(created_at, '%b %Y') as month,
-             DATE_FORMAT(created_at, '%Y-%m') as sort_key,
-             COUNT(*) as count
-      FROM service_requests
-      WHERE created_at >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
-      GROUP BY month, sort_key
-      ORDER BY sort_key ASC
-    `);
+    const [byStatus, byCategory, reportsByType, usersByRole, requestsPerMonth] = await Promise.all([
+      safeQuery('SELECT status, COUNT(*) as count FROM service_requests GROUP BY status'),
+      safeQuery('SELECT category, COUNT(*) as count FROM service_requests GROUP BY category'),
+      safeQuery('SELECT report_type, COUNT(*) as count FROM infrastructure_reports GROUP BY report_type'),
+      safeQuery('SELECT role, COUNT(*) as count FROM users GROUP BY role'),
+      safeQuery(`SELECT DATE_FORMAT(created_at,'%b %Y') as month, DATE_FORMAT(created_at,'%Y-%m') as sort_key, COUNT(*) as count FROM service_requests WHERE created_at >= DATE_SUB(NOW(), INTERVAL 6 MONTH) GROUP BY month, sort_key ORDER BY sort_key ASC`),
+    ]);
 
     res.json({
-      users: users.count, requests: requests.count, reports: reports.count,
-      infrastructure: infra.count, pending_requests: pending.count,
-      open_reports: openRep.count, damaged_assets: damaged.count,
+      users, requests, reports, infrastructure: infra,
+      pending_requests: pending, open_reports: openRep, damaged_assets: damaged,
       charts: { byStatus, byCategory, reportsByType, usersByRole, requestsPerMonth }
     });
   } catch (error) {

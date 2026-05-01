@@ -94,20 +94,9 @@ export default function Login() {
               <input name="phone" value={form.phone} onChange={handle} placeholder="09xxxxxxxx" />
             </div>
             <div className="form-group">
-              <label>{t.role}</label>
-              <select name="role" value={form.role} onChange={handle}>
-                <option value="citizen">{t.citizen}</option>
-                <option value="approver">{t.approver}</option>
-                <option value="electrician">{t.electrician}</option>
-                <option value="admin">{t.admin}</option>
-              </select>
+              <label>{t.serviceId}</label>
+              <input name="service_id" value={form.service_id} onChange={handle} placeholder="EEU-12345" />
             </div>
-            {form.role === 'citizen' && (
-              <div className="form-group">
-                <label>{t.serviceId}</label>
-                <input name="service_id" value={form.service_id} onChange={handle} placeholder="EEU-12345" />
-              </div>
-            )}
             <button className="btn btn-primary btn-full" disabled={loading}>
               {loading ? t.creatingAccount : t.createAccount}
             </button>

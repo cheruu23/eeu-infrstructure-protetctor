@@ -18,6 +18,12 @@ router.post('/register', async (req, res) => {
 
   const { name, email, password, phone, role, service_id, team_name } = req.body;
 
+  // Public registration is only for citizens
+  // approver, electrician, admin must be created by admin
+  if (role && role !== 'citizen') {
+    return res.status(403).json({ message: 'Only citizen accounts can be registered publicly. Other roles are created by admin.' });
+  }
+
   // Basic validation — never trust the client
   if (!name || !email || !password) {
     return res.status(400).json({ message: 'Name, email, and password are required' });

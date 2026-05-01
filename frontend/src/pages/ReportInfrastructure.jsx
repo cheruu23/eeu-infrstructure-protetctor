@@ -14,6 +14,7 @@ export default function ReportInfrastructure({
   const [scanning, setScanning] = useState(false);
   const [scannedAsset, setScannedAsset] = useState(null);
   const [locating, setLocating] = useState(false);
+  const [assetList, setAssetList] = useState([]);
   const [form, setForm] = useState({
     infrastructure_id: '', asset_code: '',
     report_type: 'damage', title: '', description: '',
@@ -21,6 +22,11 @@ export default function ReportInfrastructure({
   });
   const [error, setError] = useState('');
   const scannerRef = useRef(null);
+
+  // Load asset list for manual selection
+  useEffect(() => {
+    api.get('/reports/infrastructure').then(res => setAssetList(res.data.assets || [])).catch(() => {});
+  }, []);
 
   const detectLocation = () => {
     if (!navigator.geolocation) return setError('Geolocation not supported');
@@ -199,8 +205,27 @@ export default function ReportInfrastructure({
           <form onSubmit={handleFormSubmit}>
             {mode === 'manual' && (
               <div className="form-group">
-                <label>Asset Code (optional)</label>
-                <input name="asset_code" value={form.asset_code} onChange={handle} placeholder="e.g. EEU-POLE-001" />
+                <label>Asset (optional — select from list or type code)</label>
+                <select onChange={e => {
+                  const asset = assetList.find(a => a.id === parseInt(e.target.value));
+                  if (asset) {
+                    setScannedAsset(asset);
+                    setForm(f => ({
+                      ...f,
+                      asset_code: asset.asset_code,
+                      infrastructure_id: asset.id,
+                      location_address: asset.location || f.location_address,
+                      latitude: asset.latitude || f.latitude,
+                      longitude: asset.longitude || f.longitude,
+                    }));
+                  }
+                }} style={{width:'100%', padding:'10px 14px', borderRadius:8, border:'1px solid #ddd', marginBottom:8}}>
+                  <option value="">— Select infrastructure asset —</option>
+                  {assetList.map(a => (
+                    <option key={a.id} value={a.id}>{a.asset_code} · {a.asset_type} {a.location ? `· ${a.location}` : ''}</option>
+                  ))}
+                </select>
+                <input name="asset_code" value={form.asset_code} onChange={handle} placeholder="Or type asset code manually (e.g. EEU-POLE-001)" />
               </div>
             )}
             <div className="form-group">

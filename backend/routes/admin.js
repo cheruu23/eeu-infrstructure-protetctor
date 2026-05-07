@@ -94,6 +94,13 @@ router.post('/users', async (req, res) => {
     return res.status(400).json({ message: `role must be one of: ${validRoles.join(', ')}` });
   }
 
+  if (phone) {
+    const ethPattern = /^(\+251[79]\d{8}|0[79]\d{8})$/;
+    if (!ethPattern.test(phone.replace(/\s+/g, ''))) {
+      return res.status(400).json({ message: 'Invalid phone number. Use Ethiopian format: 09xxxxxxxx or +251xxxxxxxxx' });
+    }
+  }
+
   try {
     // Check duplicate email
     const [existing] = await db.query('SELECT id FROM users WHERE email = ?', [email]);

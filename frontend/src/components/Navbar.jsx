@@ -14,18 +14,21 @@ export default function Navbar() {
     <nav className="navbar">
       <div className="navbar-brand">
         <div style={{
-          width: 40, height: 40, borderRadius: '50%',
+          width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
           background: 'linear-gradient(135deg, #F5A623 40%, #4CAF50 40%)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <div style={{ width: 4, height: 28, background: 'white', borderRadius: 2 }} />
+          <div style={{ width: 4, height: 24, background: 'white', borderRadius: 2 }} />
         </div>
-        {t.appName}
+        <span className="navbar-brand-text">{t.appName}</span>
       </div>
+
       {user && (
         <div className="navbar-user">
           <LangSwitcher />
-          <span style={{ opacity: 0.85 }}>{user.name} · <span style={{ color: '#F5A623', textTransform: 'capitalize' }}>{user.role}</span></span>
+          <span className="navbar-user-name" style={{ opacity: 0.85 }}>
+            {user.name} · <span style={{ color: '#F5A623', textTransform: 'capitalize' }}>{user.role}</span>
+          </span>
           <button className="btn-logout" onClick={handleLogout}>{t.logout}</button>
         </div>
       )}

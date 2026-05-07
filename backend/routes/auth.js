@@ -27,7 +27,14 @@ router.post('/register', async (req, res) => {
   // Basic validation — never trust the client
   if (!name || !email || !password) {
     return res.status(400).json({ message: 'Name, email, and password are required' });
-    // 400 = Bad Request (client sent wrong/missing data)
+  }
+
+  // Ethiopian phone validation
+  if (phone) {
+    const ethPattern = /^(\+251[79]\d{8}|0[79]\d{8})$/;
+    if (!ethPattern.test(phone.replace(/\s+/g, ''))) {
+      return res.status(400).json({ message: 'Invalid phone number. Use Ethiopian format: 09xxxxxxxx or +251xxxxxxxxx' });
+    }
   }
 
   try {

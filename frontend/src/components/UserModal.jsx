@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLang } from '../context/LangContext';
+import { validateEthiopianPhone, normalizePhone } from '../utils/validation';
 
 const ROLES = ['citizen', 'approver', 'electrician', 'admin'];
 const EMPTY = { name: '', email: '', password: '', phone: '', role: 'citizen', service_id: '', team_name: '' };
@@ -7,18 +8,28 @@ const EMPTY = { name: '', email: '', password: '', phone: '', role: 'citizen', s
 export default function UserModal({ mode, user, onSave, onClose, loading, error }) {
   const { t } = useLang();
   const [form, setForm] = useState(EMPTY);
+  const [phoneError, setPhoneError] = useState('');
 
   useEffect(() => {
     if (mode === 'edit' && user) {
       setForm({ name: user.name||'', email: user.email||'', password: '', phone: user.phone||'', role: user.role||'citizen', service_id: user.service_id||'', team_name: user.team_name||'' });
     } else { setForm(EMPTY); }
+    setPhoneError('');
   }, [mode, user]);
 
-  const handle = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const handle = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+    if (e.target.name === 'phone') {
+      const r = validateEthiopianPhone(e.target.value);
+      setPhoneError(r.valid ? '' : r.message);
+    }
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (phoneError) return;
     const payload = { ...form };
+    if (form.phone) payload.phone = normalizePhone(form.phone);
     if (mode === 'edit' && !payload.password) delete payload.password;
     onSave(payload);
   };
@@ -51,7 +62,9 @@ export default function UserModal({ mode, user, onSave, onClose, loading, error 
           </div>
           <div className="form-group">
             <label>{t.phone}</label>
-            <input name="phone" value={form.phone} onChange={handle} placeholder="09xxxxxxxx" />
+            <input name="phone" value={form.phone} onChange={handle} placeholder="09xxxxxxxx or +251xxxxxxxxx" inputMode="tel"
+              className={phoneError ? 'input-error' : ''} />
+            {phoneError && <div className="error-msg">⚠ {phoneError}</div>}
           </div>
           <div className="form-group">
             <label>{t.role} *</label>
@@ -71,7 +84,7 @@ export default function UserModal({ mode, user, onSave, onClose, loading, error 
             </div>
           )}
           <div style={{ display:'flex', gap:10, marginTop:8 }}>
-            <button className="btn btn-primary" type="submit" disabled={loading} style={{ flex:1 }}>
+            <button className="btn btn-primary" type="submit" disabled={loading || !!phoneError} style={{ flex:1 }}>
               {loading ? t.saving : mode === 'create' ? t.createUser : t.save}
             </button>
             <button className="btn btn-outline" type="button" onClick={onClose} style={{ flex:1 }}>{t.cancel}</button>

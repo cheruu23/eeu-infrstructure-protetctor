@@ -63,10 +63,12 @@ export default function Login() {
     <div className="auth-page">
       <div className="auth-card">
         <div className="auth-logo">
-          <div style={{ width: 64, height: 64, borderRadius: '50%', margin: '0 auto', background: 'linear-gradient(135deg,#F5A623 45%,#4CAF50 45%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ width: 5, height: 40, background: 'white', borderRadius: 3 }} />
-          </div>
-          <h2>{t.appName}</h2>
+          <img
+            src="/eeu-logo.png"
+            alt="Ethiopian Electric Utility"
+            style={{ width: 140, height: 'auto', margin: '0 auto', display: 'block' }}
+          />
+          <h2 style={{ marginTop: 8 }}>{t.appName}</h2>
           <p>የኢትዮጵያ ኤሌክትሪክ አገልግሎት · Tajaajila Elektirikii Itoophiyaa</p>
         </div>
 

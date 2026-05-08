@@ -13,13 +13,11 @@ export default function Navbar() {
   return (
     <nav className="navbar">
       <div className="navbar-brand">
-        <div style={{
-          width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
-          background: 'linear-gradient(135deg, #F5A623 40%, #4CAF50 40%)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
-          <div style={{ width: 4, height: 24, background: 'white', borderRadius: 2 }} />
-        </div>
+        <img
+          src="/eeu-logo.png"
+          alt="EEU Logo"
+          style={{ height: 36, width: 'auto', objectFit: 'contain', flexShrink: 0 }}
+        />
         <span className="navbar-brand-text">{t.appName}</span>
       </div>
 

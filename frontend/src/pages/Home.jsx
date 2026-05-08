@@ -31,13 +31,7 @@ export default function Home() {
         {/* Top bar */}
         <div style={{ maxWidth: 1100, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 0' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{
-              width: 44, height: 44, borderRadius: '50%',
-              background: 'linear-gradient(135deg, #F5A623 45%, #4CAF50 45%)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
-            }}>
-              <div style={{ width: 4, height: 28, background: 'white', borderRadius: 2 }} />
-            </div>
+            <img src="/eeu-logo.png" alt="EEU" style={{ height: 44, width: 'auto', objectFit: 'contain', flexShrink: 0, filter: 'brightness(0) invert(1)' }} />
             <div>
               <div style={{ fontWeight: 700, fontSize: '1rem' }}>{t.appName}</div>
               <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>{t.appSub}</div>
@@ -52,9 +46,11 @@ export default function Home() {
 
         {/* Hero content */}
         <div style={{ maxWidth: 1100, margin: '0 auto', padding: '60px 0 80px', textAlign: 'center' }}>
-          <div style={{ fontSize: '0.85rem', background: 'rgba(245,166,35,0.25)', color: '#F5A623', display: 'inline-block', padding: '4px 16px', borderRadius: 20, marginBottom: 20, fontWeight: 600 }}>
-            🇪🇹 {t.appName}
-          </div>
+          <img
+            src="/eeu-logo.png"
+            alt="Ethiopian Electric Utility"
+            style={{ width: 120, height: 'auto', margin: '0 auto 20px', display: 'block' }}
+          />
           <h1 style={{ fontSize: 'clamp(1.8rem, 4vw, 3rem)', fontWeight: 800, lineHeight: 1.2, marginBottom: 20 }}>
             {t.tagline}
           </h1>

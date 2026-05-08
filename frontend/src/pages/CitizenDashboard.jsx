@@ -113,8 +113,6 @@ export default function CitizenDashboard() {
   const [requests, setRequests] = useState([]);
   const [myReports, setMyReports] = useState([]);
   const [form, setForm] = useState({ title: '', category: 'other', description: '', location: '', service_id: user?.service_id || '' });
-  const [msg, setMsg] = useState('');
-  const [error, setError] = useState('');
   const [ratingForm, setRatingForm] = useState({ request_id: null, rating: 0, feedback: '' });
   const [submitLoading, setSubmitLoading] = useState(false);
 
@@ -144,26 +142,26 @@ export default function CitizenDashboard() {
 
   // Called when citizen confirms from review card
   const handleConfirmSubmit = async () => {
-    setSubmitLoading(true); setError('');
+    setSubmitLoading(true);
     try {
       const res = await api.post('/requests', form);
       setSubmittedData({ ...form, id: res.data.request_id });
       setSubmitStage('confirmed');
+      toast.show(t.requestSubmitted, 'success');
       fetchRequests();
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to submit');
+      toast.show(err.response?.data?.message || 'Failed to submit', 'error');
       setSubmitStage('idle');
     } finally { setSubmitLoading(false); }
   };
 
   const handleRate = async (requestId) => {
-    setMsg(''); setError('');
     try {
       await api.post('/ratings', { request_id: requestId, rating: ratingForm.rating, feedback: ratingForm.feedback });
-      setMsg('Thank you for your feedback!');
+      toast.show(t.thankYou, 'success');
       setRatingForm({ request_id: null, rating: 0, feedback: '' });
       fetchRequests();
-    } catch (err) { setError(err.response?.data?.message || 'Rating failed'); }
+    } catch (err) { toast.show(err.response?.data?.message || 'Rating failed', 'error'); }
   };
 
   const resetRequest = () => {
@@ -199,9 +197,6 @@ export default function CitizenDashboard() {
       </div>
 
       <div className="main-content">
-        {msg && <div className="alert alert-success">{msg}</div>}
-        {error && <div className="alert alert-error">{error}</div>}
-
         {/* ── Dashboard Home ── */}
         {tab === 'Dashboard' && (
           <>

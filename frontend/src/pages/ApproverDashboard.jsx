@@ -17,8 +17,6 @@ export default function ApproverDashboard() {
   const [all, setAll] = useState([]);
   const [groups, setGroups] = useState([]);
   const [stats, setStats] = useState({ byCategory: [], byStatus: [] });
-  const [msg, setMsg] = useState('');
-  const [error, setError] = useState('');
   const [rejectForm, setRejectForm] = useState({ id: null, reason: '' });
   const [assignForm, setAssignForm] = useState({ id: null, group_id: '' });
   const [catFilter, setCatFilter] = useState('all');
@@ -156,9 +154,6 @@ export default function ApproverDashboard() {
       </div>
 
       <div className="main-content">
-        {msg && <div className="alert alert-success">{msg}</div>}
-        {error && <div className="alert alert-error">{error}</div>}
-
         {/* ── Dashboard Home ── */}
         {tab === 'Dashboard' && (
           <>

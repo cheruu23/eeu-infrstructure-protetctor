@@ -26,8 +26,6 @@ export default function AdminDashboard() {
   const [teams, setTeams] = useState([]);
   const [qrAsset, setQrAsset] = useState(null);
   const [newAsset, setNewAsset] = useState({ asset_code: '', asset_type: 'pole', description: '', location: '', latitude: '', longitude: '' });
-  const [msg, setMsg] = useState('');
-  const [error, setError] = useState('');
   const [assignReport, setAssignReport] = useState({ id: null, team_id: '' });
 
   // User management state
@@ -51,7 +49,7 @@ export default function AdminDashboard() {
       setUsers(res.data.users);
       setElectricians(res.data.users.filter(u => u.role === 'electrician'));
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to load users');
+      toast.show(err.response?.data?.message || 'Failed to load users', 'error');
     }
   };
 
@@ -94,76 +92,73 @@ export default function AdminDashboard() {
   useEffect(() => { fetchAll(); }, []);
 
   const createAsset = async (e) => {
-    e.preventDefault(); setMsg(''); setError('');
+    e.preventDefault();
     try {
       await api.post('/admin/infrastructure', newAsset);
-      setMsg('Asset created!');
+      toast.show('Asset created! ✓', 'success');
       setNewAsset({ asset_code: '', asset_type: 'pole', description: '', location: '', latitude: '', longitude: '' });
       fetchAll();
-    } catch (err) { setError(err.response?.data?.message || 'Failed'); }
+    } catch (err) { toast.show(err.response?.data?.message || 'Failed to create asset', 'error'); }
   };
 
   const updateAssetStatus = async (id, status) => {
-    try { await api.put(`/admin/infrastructure/${id}/status`, { status }); fetchAll(); } catch {}
+    try { await api.put(`/admin/infrastructure/${id}/status`, { status }); toast.show('Status updated', 'success'); fetchAll(); }
+    catch (err) { toast.show(err.response?.data?.message || 'Failed', 'error'); }
   };
 
   const resolveReport = async (id) => {
-    try { await api.put(`/admin/reports/${id}/resolve`); setMsg('Report resolved!'); fetchAll(); } catch {}
+    try { await api.put(`/admin/reports/${id}/resolve`); toast.show('Report resolved! ✓', 'success'); fetchAll(); }
+    catch (err) { toast.show(err.response?.data?.message || 'Failed', 'error'); }
   };
 
   const assignReportTeam = async (id) => {
-    if (!assignReport.team_id) return setError('Select a team');
+    if (!assignReport.team_id) return toast.show('Select a team', 'error');
     try {
       await api.put(`/admin/reports/${id}/assign`, { team_id: assignReport.team_id });
-      setMsg('Team assigned!'); setAssignReport({ id: null, team_id: '' }); fetchAll();
-    } catch (err) { setError(err.response?.data?.message || 'Failed'); }
+      toast.show('Team assigned! ✓', 'success'); setAssignReport({ id: null, team_id: '' }); fetchAll();
+    } catch (err) { toast.show(err.response?.data?.message || 'Failed', 'error'); }
   };
 
   const deleteUser = async (id) => {
     if (!window.confirm('Delete this user? This cannot be undone.')) return;
-    setMsg(''); setError('');
     try {
       await api.delete(`/admin/users/${id}`);
-      setUsers(prev => prev.filter(u => u.id !== id)); // instant UI update
-      setMsg('User deleted.');
-      fetchUsers(); // re-sync with DB
-    } catch (err) {
-      setError(err.response?.data?.message || 'Delete failed');
-    }
+      setUsers(prev => prev.filter(u => u.id !== id));
+      toast.show('User deleted.', 'success');
+      fetchUsers();
+    } catch (err) { toast.show(err.response?.data?.message || 'Delete failed', 'error'); }
   };
 
   const createGroup = async (e) => {
-    e.preventDefault(); setMsg(''); setError('');
+    e.preventDefault();
     try {
       await api.post('/groups', newGroup);
-      setMsg('Group created!');
+      toast.show('Group created! ✓', 'success');
       setNewGroup({ name: '', description: '' });
       fetchGroups();
-    } catch (err) { setError(err.response?.data?.message || 'Failed'); }
+    } catch (err) { toast.show(err.response?.data?.message || 'Failed', 'error'); }
   };
 
   const deleteGroup = async (id) => {
     if (!window.confirm('Delete this group?')) return;
-    try { await api.delete(`/groups/${id}`); fetchGroups(); } catch (err) { setError(err.response?.data?.message || 'Failed'); }
+    try { await api.delete(`/groups/${id}`); toast.show('Group deleted.', 'success'); fetchGroups(); }
+    catch (err) { toast.show(err.response?.data?.message || 'Failed', 'error'); }
   };
 
   const addMember = async (groupId) => {
-    if (!addMemberForm.user_id) return setError('Select an electrician');
+    if (!addMemberForm.user_id) return toast.show('Select an electrician', 'error');
     try {
       await api.post(`/groups/${groupId}/members`, { user_id: addMemberForm.user_id });
-      setMsg('Electrician added to group!');
+      toast.show('Electrician added to group! ✓', 'success');
       setAddMemberForm({ group_id: null, user_id: '' });
       fetchGroupMembers(groupId);
       fetchGroups();
-    } catch (err) { setError(err.response?.data?.message || 'Failed'); }
+    } catch (err) { toast.show(err.response?.data?.message || 'Failed', 'error'); }
   };
 
   const removeMember = async (groupId, userId) => {
-    try {
-      await api.delete(`/groups/${groupId}/members/${userId}`);
-      fetchGroupMembers(groupId);
-      fetchGroups();
-    } catch {}
+    try { await api.delete(`/groups/${groupId}/members/${userId}`); toast.show('Member removed.', 'success'); fetchGroupMembers(groupId); fetchGroups(); }
+    catch (err) { toast.show(err.response?.data?.message || 'Failed', 'error'); }
   };
 
   const openCreate = () => { setModalError(''); setEditingUser(null); setUserModal('create'); };
@@ -175,12 +170,11 @@ export default function AdminDashboard() {
     try {
       if (userModal === 'create') {
         const res = await api.post('/admin/users', formData);
-        // Optimistically append the new user immediately, then re-fetch to confirm
         setUsers(prev => [res.data.user ? { ...res.data.user, created_at: new Date().toISOString() } : {}, ...prev]);
-        setMsg('User created successfully.');
+        toast.show('User created successfully! ✓', 'success');
       } else {
         await api.put(`/admin/users/${editingUser.id}`, formData);
-        setMsg('User updated successfully.');
+        toast.show('User updated successfully! ✓', 'success');
       }
       closeModal();
       // Always re-fetch to get the full accurate list from DB
@@ -223,9 +217,6 @@ export default function AdminDashboard() {
       </div>
 
       <div className="main-content">
-        {msg && <div className="alert alert-success">{msg}</div>}
-        {error && <div className="alert alert-error">{error}</div>}
-
         {/* ── Overview ── */}
         {tab === 'Overview' && (
           <>

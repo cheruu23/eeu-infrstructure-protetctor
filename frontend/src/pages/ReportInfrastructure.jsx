@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../api/axios';
 import LocationMap from '../components/LocationMap';
 import QRScanner from '../components/QRScanner';
+import { useToast } from '../components/Toast';
 
 const REPORT_TYPES = ['damage', 'theft', 'hazard', 'outage', 'other'];
 
@@ -10,6 +11,7 @@ export default function ReportInfrastructure({
   reportStage, reportDraft, submittedReport,
   onConfirmReport, onEditReport, onReportViewAll, onReportAnother, submitLoading
 }) {
+  const toast = useToast();
   const [mode, setMode] = useState(null);
   const [scanning, setScanning] = useState(false);
   const [scannedAsset, setScannedAsset] = useState(null);
@@ -20,7 +22,6 @@ export default function ReportInfrastructure({
     report_type: 'damage', title: '', description: '',
     latitude: '', longitude: '', location_address: '', photo_url: ''
   });
-  const [error, setError] = useState('');
 
   useEffect(() => {
     api.get('/reports/infrastructure').then(res => setAssetList(res.data.assets || [])).catch(() => {});
@@ -42,7 +43,7 @@ export default function ReportInfrastructure({
         }
         setLocating(false);
       },
-      () => { setError('Could not get location. Enter manually.'); setLocating(false); }
+      () => { toast.show('Could not get location. Enter manually.', 'warning'); setLocating(false); }
     );
   };
 
@@ -76,7 +77,6 @@ export default function ReportInfrastructure({
 
   const handleFormSubmit = (e) => {
     e.preventDefault();
-    setError('');
     if (onDraft) onDraft(form);
   };
 
@@ -162,7 +162,6 @@ export default function ReportInfrastructure({
   if (!mode) return (
     <div>
       <h2 className="page-title">Report Infrastructure Problem</h2>
-      {error && <div className="alert alert-error">{error}</div>}
       <p style={{ color: '#555', marginBottom: 20, fontSize: '0.9rem' }}>
         Help protect EEU infrastructure. Report damage, theft, hazards, or outages.
       </p>
@@ -189,14 +188,13 @@ export default function ReportInfrastructure({
       <button className="btn btn-outline btn-sm" style={{ marginBottom: 14 }}
         onClick={() => { setMode(null); setScannedAsset(null); setScanning(false); }}>← Back</button>
       <h2 className="page-title">{mode === 'qr' ? '📷 QR Code Report' : '✏️ Manual Report'}</h2>
-      {error && <div className="alert alert-error">{error}</div>}
 
       {/* QR Scanner with camera toggle */}
       {mode === 'qr' && scanning && (
         <div className="card" style={{ marginBottom: 14 }}>
           <QRScanner
             onScan={handleQRScan}
-            onError={(msg) => setError(msg)}
+            onError={(msg) => toast.show(msg, 'error')}
             onClose={() => { setScanning(false); setMode('manual'); }}
           />
           <button className="btn btn-outline btn-sm" style={{ marginTop: 10, width: '100%' }}

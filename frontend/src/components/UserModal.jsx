@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useLang } from '../context/LangContext';
 import { validateEthiopianPhone, normalizePhone } from '../utils/validation';
+import { useToast } from '../components/Toast';
 
 const ROLES = ['citizen', 'approver', 'electrician', 'admin'];
 const EMPTY = { name: '', email: '', password: '', phone: '', role: 'citizen', service_id: '', team_name: '' };
 
-export default function UserModal({ mode, user, onSave, onClose, loading, error }) {
+export default function UserModal({ mode, user, onSave, onClose, loading }) {
   const { t } = useLang();
+  const toast = useToast();
   const [form, setForm] = useState(EMPTY);
   const [phoneError, setPhoneError] = useState('');
 
@@ -27,7 +29,7 @@ export default function UserModal({ mode, user, onSave, onClose, loading, error 
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (phoneError) return;
+    if (phoneError) { toast.show(phoneError, 'error'); return; }
     const payload = { ...form };
     if (form.phone) payload.phone = normalizePhone(form.phone);
     if (mode === 'edit' && !payload.password) delete payload.password;

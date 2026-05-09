@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axios';
+import { useToast } from '../components/Toast';
 
 const TABS = ['Assigned', 'Completed'];
 
 export default function TeamDashboard() {
+  const toast = useToast();
   const [tab, setTab] = useState('Assigned');
   const [assigned, setAssigned] = useState([]);
   const [completed, setCompleted] = useState([]);
   const [completeForm, setCompleteForm] = useState({ id: null, service_id: '' });
-  const [msg, setMsg] = useState('');
-  const [error, setError] = useState('');
 
   const fetchData = async () => {
     try {
@@ -22,14 +22,13 @@ export default function TeamDashboard() {
   useEffect(() => { fetchData(); }, []);
 
   const complete = async (id) => {
-    if (!completeForm.service_id) return setError("Enter the citizen's Service ID");
-    setMsg(''); setError('');
+    if (!completeForm.service_id) return toast.show("Enter the citizen's Service ID", 'error');
     try {
       await api.put(`/team/${id}/complete`, { verified_service_id: completeForm.service_id });
-      setMsg('Service marked as completed!');
+      toast.show('Service marked as completed! ✓', 'success');
       setCompleteForm({ id: null, service_id: '' });
       fetchData();
-    } catch (err) { setError(err.response?.data?.message || 'Failed'); }
+    } catch (err) { toast.show(err.response?.data?.message || 'Failed', 'error'); }
   };
 
   const avgRating = completed.filter(r => r.rating).reduce((sum, r, _, arr) => sum + r.rating / arr.length, 0);
@@ -45,9 +44,6 @@ export default function TeamDashboard() {
       </div>
 
       <div className="main-content">
-        {msg && <div className="alert alert-success">{msg}</div>}
-        {error && <div className="alert alert-error">{error}</div>}
-
         {tab === 'Assigned' && (
           <>
             <div className="stats-grid">
@@ -69,10 +65,9 @@ export default function TeamDashboard() {
                   <span className="badge badge-assigned">assigned</span>
                 </div>
                 <p style={{fontSize:'0.88rem', color:'#555', marginBottom:12}}>{r.description}</p>
-
                 {completeForm.id === r.id ? (
                   <div>
-                    <p style={{fontSize:'0.85rem', marginBottom:6, color:'#555'}}>Enter citizen's EEU Service ID to verify completion:</p>
+                    <p style={{fontSize:'0.85rem', marginBottom:6, color:'#555'}}>Enter citizen's EEU Service ID to verify:</p>
                     <div style={{display:'flex', gap:8}}>
                       <input style={{flex:1, padding:'8px', borderRadius:6, border:'1px solid #ddd'}}
                         placeholder="EEU-12345" value={completeForm.service_id}
@@ -108,9 +103,7 @@ export default function TeamDashboard() {
                     <span style={{color:'#F5A623', fontSize:'1.1rem'}}>{'★'.repeat(r.rating)}{'☆'.repeat(5-r.rating)}</span>
                     <span style={{fontSize:'0.82rem', color:'#555', marginLeft:8}}>{r.feedback || 'No feedback'}</span>
                   </div>
-                ) : (
-                  <p style={{fontSize:'0.82rem', color:'#aaa', marginTop:8}}>Not rated yet</p>
-                )}
+                ) : <p style={{fontSize:'0.82rem', color:'#aaa', marginTop:8}}>Not rated yet</p>}
               </div>
             ))}
           </>

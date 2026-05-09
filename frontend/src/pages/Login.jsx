@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useLang } from '../context/LangContext';
 import LangSwitcher from '../components/LangSwitcher';
 import { validateName, validatePassword, validateEthiopianPhone, normalizePhone, passwordStrengthInfo } from '../utils/validation';
+import { useToast } from '../components/Toast';
 
 // Password strength bar component
 function PasswordStrength({ password }) {
@@ -47,12 +48,11 @@ export default function Login() {
   const [form, setForm] = useState({ name: '', email: '', password: '', phone: '', service_id: '' });
   const [resetForm, setResetForm] = useState({ email: '', token: '', newPassword: '' });
   const [errors, setErrors] = useState({});
-  const [success, setSuccess] = useState('');
-  const [apiError, setApiError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [resetToken, setResetToken] = useState(''); // token returned from forgot-password
+  const [resetToken, setResetToken] = useState('');
   const { login } = useAuth();
   const navigate = useNavigate();
+  const toast = useToast();
 
   const handle = (e) => {
     const { name, value } = e.target;
@@ -79,67 +79,60 @@ export default function Login() {
   };
 
   const handleLogin = async (e) => {
-    e.preventDefault(); setApiError(''); setLoading(true);
+    e.preventDefault(); setLoading(true);
     try {
       const res = await api.post('/auth/login', { email: form.email, password: form.password });
       login(res.data.user, res.data.token);
       navigate(`/${res.data.user.role}`);
-    } catch (err) { setApiError(err.response?.data?.message || t.loginFailed); }
+    } catch (err) { toast.show(err.response?.data?.message || t.loginFailed, 'error'); }
     finally { setLoading(false); }
   };
 
   const handleRegister = async (e) => {
-    e.preventDefault(); setApiError(''); setSuccess(''); setLoading(true);
-
-    // Validate all fields
+    e.preventDefault(); setLoading(true);
     const nameCheck = validateName(form.name);
     const passCheck = validatePassword(form.password);
     const phoneCheck = validateEthiopianPhone(form.phone);
-
     if (!nameCheck.valid || !passCheck.valid || !phoneCheck.valid) {
       setErrors({ name: nameCheck.message, password: passCheck.message, phone: phoneCheck.message });
       setLoading(false);
       return;
     }
-
     try {
-      await api.post('/auth/register', {
-        ...form,
-        phone: form.phone ? normalizePhone(form.phone) : undefined,
-      });
-      setSuccess(t.accountCreated);
+      await api.post('/auth/register', { ...form, phone: form.phone ? normalizePhone(form.phone) : undefined });
+      toast.show(t.accountCreated, 'success');
       setTab('login');
-    } catch (err) { setApiError(err.response?.data?.message || t.registerFailed); }
+    } catch (err) { toast.show(err.response?.data?.message || t.registerFailed, 'error'); }
     finally { setLoading(false); }
   };
 
   const handleForgot = async (e) => {
-    e.preventDefault(); setApiError(''); setSuccess(''); setLoading(true);
+    e.preventDefault(); setLoading(true);
     try {
       const res = await api.post('/auth/forgot-password', { email: resetForm.email });
       if (res.data.reset_token) {
         setResetToken(res.data.reset_token);
         setResetForm(f => ({ ...f, token: res.data.reset_token }));
-        setSuccess('Reset token generated. Copy the token below and use it to set a new password.');
+        toast.show('Reset token generated. Copy it and set your new password.', 'info');
         setTab('reset');
       } else {
-        setSuccess(res.data.message);
+        toast.show(res.data.message, 'info');
       }
-    } catch (err) { setApiError(err.response?.data?.message || 'Failed'); }
+    } catch (err) { toast.show(err.response?.data?.message || 'Failed', 'error'); }
     finally { setLoading(false); }
   };
 
   const handleResetPassword = async (e) => {
-    e.preventDefault(); setApiError(''); setSuccess(''); setLoading(true);
+    e.preventDefault(); setLoading(true);
     const passCheck = validatePassword(resetForm.newPassword);
-    if (!passCheck.valid) { setApiError(passCheck.message); setLoading(false); return; }
+    if (!passCheck.valid) { toast.show(passCheck.message, 'error'); setLoading(false); return; }
     try {
       await api.post('/auth/reset-password', resetForm);
-      setSuccess('Password reset successfully! You can now login.');
+      toast.show('Password reset successfully! You can now login.', 'success');
       setTab('login');
       setResetForm({ email: '', token: '', newPassword: '' });
       setResetToken('');
-    } catch (err) { setApiError(err.response?.data?.message || 'Reset failed'); }
+    } catch (err) { toast.show(err.response?.data?.message || 'Reset failed', 'error'); }
     finally { setLoading(false); }
   };
 
@@ -168,11 +161,7 @@ export default function Login() {
           </div>
         )}
 
-        {apiError && <div className="alert alert-error">{apiError}</div>}
-        {success && <div className="alert alert-success">{success}</div>}
-
-        {/* ── Login ── */}
-        {tab === 'login' && (
+        {/* ── Login ── */}        {tab === 'login' && (
           <form onSubmit={handleLogin}>
             <div className="form-group">
               <label>{t.email}</label>

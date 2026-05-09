@@ -2,166 +2,166 @@ import { useState, useEffect, useCallback, createContext, useContext } from 'rea
 
 const ToastContext = createContext(null);
 
-const ICONS = {
-  success: (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-      <circle cx="10" cy="10" r="10" fill="rgba(255,255,255,0.2)" />
-      <path d="M5.5 10.5l3 3 6-6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  ),
-  error: (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-      <circle cx="10" cy="10" r="10" fill="rgba(255,255,255,0.2)" />
-      <path d="M7 7l6 6M13 7l-6 6" stroke="white" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  ),
-  info: (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-      <circle cx="10" cy="10" r="10" fill="rgba(255,255,255,0.2)" />
-      <path d="M10 9v5M10 7v.5" stroke="white" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  ),
-  warning: (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-      <circle cx="10" cy="10" r="10" fill="rgba(255,255,255,0.2)" />
-      <path d="M10 6v5M10 13v.5" stroke="white" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  ),
-};
+// EEU brand colors
+// success  → EEU green  #2e7d32
+// error    → red        #c62828
+// info     → EEU orange #F5A623
+// warning  → amber      #e65100
 
-const STYLES = {
+const CONFIG = {
   success: {
-    bg: 'linear-gradient(135deg, #2e7d32 0%, #43a047 100%)',
-    border: 'rgba(255,255,255,0.15)',
-    progress: 'rgba(255,255,255,0.4)',
+    bg: '#2e7d32',
+    accent: '#F5A623',          // orange accent bar on left
+    label: 'Success',
   },
   error: {
-    bg: 'linear-gradient(135deg, #c62828 0%, #e53935 100%)',
-    border: 'rgba(255,255,255,0.15)',
-    progress: 'rgba(255,255,255,0.4)',
+    bg: '#c62828',
+    accent: '#ffcdd2',
+    label: 'Error',
   },
   info: {
-    bg: 'linear-gradient(135deg, #1565c0 0%, #1976d2 100%)',
-    border: 'rgba(255,255,255,0.15)',
-    progress: 'rgba(255,255,255,0.4)',
+    bg: '#1b5e20',              // deep EEU green
+    accent: '#F5A623',
+    label: 'Info',
   },
   warning: {
-    bg: 'linear-gradient(135deg, #e65100 0%, #F5A623 100%)',
-    border: 'rgba(255,255,255,0.15)',
-    progress: 'rgba(255,255,255,0.4)',
+    bg: '#e65100',
+    accent: '#fff9c4',
+    label: 'Warning',
   },
 };
 
-const DURATION = 3800;
+const DURATION = 4000;
+
+// Checkmark SVG
+const CheckIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+    <circle cx="9" cy="9" r="9" fill="rgba(255,255,255,0.18)" />
+    <path d="M4.5 9.5l3 3 6-6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+const CrossIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+    <circle cx="9" cy="9" r="9" fill="rgba(255,255,255,0.18)" />
+    <path d="M6 6l6 6M12 6l-6 6" stroke="white" strokeWidth="2" strokeLinecap="round" />
+  </svg>
+);
+const InfoIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+    <circle cx="9" cy="9" r="9" fill="rgba(255,255,255,0.18)" />
+    <path d="M9 8v5M9 6v.5" stroke="white" strokeWidth="2" strokeLinecap="round" />
+  </svg>
+);
+const WarnIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+    <circle cx="9" cy="9" r="9" fill="rgba(255,255,255,0.18)" />
+    <path d="M9 5v5M9 12v.5" stroke="white" strokeWidth="2" strokeLinecap="round" />
+  </svg>
+);
+
+const ICON = { success: <CheckIcon />, error: <CrossIcon />, info: <InfoIcon />, warning: <WarnIcon /> };
 
 function ToastItem({ id, message, type = 'success', onRemove }) {
   const [visible, setVisible] = useState(false);
   const [progress, setProgress] = useState(100);
-  const style = STYLES[type] || STYLES.success;
+  const cfg = CONFIG[type] || CONFIG.success;
 
   useEffect(() => {
-    // Trigger enter animation
-    const enterTimer = setTimeout(() => setVisible(true), 10);
-
-    // Progress bar countdown
+    const t1 = setTimeout(() => setVisible(true), 10);
     const start = Date.now();
-    const interval = setInterval(() => {
-      const elapsed = Date.now() - start;
-      const remaining = Math.max(0, 100 - (elapsed / DURATION) * 100);
-      setProgress(remaining);
-      if (remaining === 0) clearInterval(interval);
+    const iv = setInterval(() => {
+      const pct = Math.max(0, 100 - ((Date.now() - start) / DURATION) * 100);
+      setProgress(pct);
+      if (pct === 0) clearInterval(iv);
     }, 30);
-
-    // Auto dismiss
-    const dismissTimer = setTimeout(() => {
+    const t2 = setTimeout(() => {
       setVisible(false);
-      setTimeout(() => onRemove(id), 350);
+      setTimeout(() => onRemove(id), 320);
     }, DURATION);
-
-    return () => {
-      clearTimeout(enterTimer);
-      clearTimeout(dismissTimer);
-      clearInterval(interval);
-    };
+    return () => { clearTimeout(t1); clearTimeout(t2); clearInterval(iv); };
   }, [id, onRemove]);
+
+  const dismiss = () => { setVisible(false); setTimeout(() => onRemove(id), 320); };
 
   return (
     <div
-      onClick={() => { setVisible(false); setTimeout(() => onRemove(id), 350); }}
+      onClick={dismiss}
       style={{
-        background: style.bg,
-        border: `1px solid ${style.border}`,
-        borderRadius: 14,
-        padding: '14px 16px 10px',
-        minWidth: 280,
-        maxWidth: 360,
-        boxShadow: '0 8px 32px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.12)',
-        cursor: 'pointer',
-        overflow: 'hidden',
         position: 'relative',
-        transform: visible ? 'translateX(0) scale(1)' : 'translateX(110%) scale(0.95)',
+        display: 'flex',
+        alignItems: 'stretch',
+        minWidth: 290,
+        maxWidth: 360,
+        borderRadius: 12,
+        overflow: 'hidden',
+        background: cfg.bg,
+        boxShadow: '0 10px 40px rgba(0,0,0,0.28), 0 2px 8px rgba(0,0,0,0.14)',
+        cursor: 'pointer',
+        transform: visible ? 'translateX(0) scale(1)' : 'translateX(115%) scale(0.92)',
         opacity: visible ? 1 : 0,
-        transition: 'transform 0.35s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s ease',
-        backdropFilter: 'blur(8px)',
+        transition: 'transform 0.38s cubic-bezier(0.34,1.56,0.64,1), opacity 0.28s ease',
       }}
     >
-      {/* Content row */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-        {/* Icon */}
-        <div style={{ flexShrink: 0, marginTop: 1 }}>
-          {ICONS[type] || ICONS.success}
+      {/* Left accent stripe */}
+      <div style={{
+        width: 5,
+        background: cfg.accent,
+        flexShrink: 0,
+      }} />
+
+      {/* EEU logo watermark */}
+      <div style={{
+        position: 'absolute',
+        right: 40,
+        top: '50%',
+        transform: 'translateY(-50%)',
+        opacity: 0.07,
+        pointerEvents: 'none',
+      }}>
+        <img src="/eeu-logo.png" alt="" style={{ height: 48, filter: 'brightness(0) invert(1)' }} />
+      </div>
+
+      {/* Main content */}
+      <div style={{ flex: 1, padding: '12px 14px 10px', display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
+        {/* Top row: icon + label + close */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ flexShrink: 0 }}>{ICON[type]}</span>
+          <span style={{ color: cfg.accent, fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', flex: 1 }}>
+            {cfg.label}
+          </span>
+          <button
+            onClick={e => { e.stopPropagation(); dismiss(); }}
+            style={{
+              background: 'rgba(255,255,255,0.12)', border: 'none', color: 'rgba(255,255,255,0.8)',
+              width: 20, height: 20, borderRadius: 5, cursor: 'pointer', fontSize: '0.7rem',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+            }}
+          >✕</button>
         </div>
 
         {/* Message */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{
-            color: 'white',
-            fontSize: '0.9rem',
-            fontWeight: 600,
-            lineHeight: 1.4,
-            wordBreak: 'break-word',
-          }}>
-            {message}
-          </div>
+        <div style={{
+          color: 'white',
+          fontSize: '0.88rem',
+          fontWeight: 500,
+          lineHeight: 1.45,
+          wordBreak: 'break-word',
+          paddingLeft: 26,   // align under icon
+        }}>
+          {message}
         </div>
 
-        {/* Close button */}
-        <button
-          onClick={e => { e.stopPropagation(); setVisible(false); setTimeout(() => onRemove(id), 350); }}
-          style={{
-            background: 'rgba(255,255,255,0.15)',
-            border: 'none',
-            color: 'white',
-            width: 22,
-            height: 22,
-            borderRadius: 6,
-            cursor: 'pointer',
-            fontSize: '0.75rem',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-            marginTop: -2,
-            transition: 'background 0.15s',
-          }}
-          onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.3)'}
-          onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
-        >
-          ✕
-        </button>
+        {/* Progress bar */}
+        <div style={{ height: 2, background: 'rgba(255,255,255,0.12)', borderRadius: 2, marginTop: 4 }}>
+          <div style={{
+            height: '100%',
+            width: `${progress}%`,
+            background: cfg.accent,
+            borderRadius: 2,
+            transition: 'width 0.03s linear',
+          }} />
+        </div>
       </div>
-
-      {/* Progress bar */}
-      <div style={{
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        height: 3,
-        width: `${progress}%`,
-        background: style.progress,
-        borderRadius: '0 0 0 14px',
-        transition: 'width 0.03s linear',
-      }} />
     </div>
   );
 }
@@ -181,21 +181,14 @@ export function ToastProvider({ children }) {
   return (
     <ToastContext.Provider value={{ show }}>
       {children}
-
-      {/* Toast stack — top right, stacks downward */}
       <div style={{
-        position: 'fixed',
-        top: 72,
-        right: 16,
-        zIndex: 9999,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 10,
+        position: 'fixed', top: 68, right: 14, zIndex: 9999,
+        display: 'flex', flexDirection: 'column', gap: 10,
         pointerEvents: 'none',
       }}>
-        {toasts.map(t => (
-          <div key={t.id} style={{ pointerEvents: 'all' }}>
-            <ToastItem id={t.id} message={t.message} type={t.type} onRemove={remove} />
+        {toasts.map(toast => (
+          <div key={toast.id} style={{ pointerEvents: 'all' }}>
+            <ToastItem id={toast.id} message={toast.message} type={toast.type} onRemove={remove} />
           </div>
         ))}
       </div>

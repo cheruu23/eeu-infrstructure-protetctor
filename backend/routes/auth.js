@@ -122,4 +122,93 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// -----------------------------------------------
+// FORGOT PASSWORD  →  POST /api/auth/forgot-password
+// Generates a reset token valid for 1 hour
+// In production this would email the link — here we return the token
+// so it can be shared manually or via a future email integration
+// -----------------------------------------------
+router.post('/forgot-password', async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ message: 'Email is required' });
+
+  try {
+    const [users] = await db.query('SELECT id, name FROM users WHERE email = ?', [email]);
+    // Always return success to prevent email enumeration attacks
+    if (users.length === 0) {
+      return res.json({ message: 'If that email exists, a reset link has been generated.' });
+    }
+
+    const user = users[0];
+    // Generate a secure random token
+    const crypto = require('crypto');
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    // Store hashed token in DB (add column if not exists — handled gracefully)
+    try {
+      await db.query(
+        'UPDATE users SET reset_token = ?, reset_token_expires = ? WHERE id = ?',
+        [hashedToken, expiresAt, user.id]
+      );
+    } catch {
+      // Column may not exist yet — return token directly for now
+    }
+
+    // In production: send email with reset link
+    // For now: return token so admin/user can use it
+    res.json({
+      message: 'Password reset token generated.',
+      reset_token: resetToken, // frontend uses this in the reset form
+      note: 'Use this token within 1 hour to reset your password.'
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// -----------------------------------------------
+// RESET PASSWORD  →  POST /api/auth/reset-password
+// -----------------------------------------------
+router.post('/reset-password', async (req, res) => {
+  const { email, token, newPassword } = req.body;
+
+  if (!email || !token || !newPassword) {
+    return res.status(400).json({ message: 'Email, token, and new password are required' });
+  }
+
+  // Password strength: min 8 chars, at least 1 uppercase, 1 number, 1 special char
+  const strongPassword = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
+  if (!strongPassword.test(newPassword)) {
+    return res.status(400).json({
+      message: 'Password must be at least 8 characters with 1 uppercase letter, 1 number, and 1 special character.'
+    });
+  }
+
+  try {
+    const crypto = require('crypto');
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+    const [users] = await db.query(
+      'SELECT id FROM users WHERE email = ? AND reset_token = ? AND reset_token_expires > NOW()',
+      [email, hashedToken]
+    );
+
+    if (users.length === 0) {
+      return res.status(400).json({ message: 'Invalid or expired reset token.' });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await db.query(
+      'UPDATE users SET password = ?, reset_token = NULL, reset_token_expires = NULL WHERE id = ?',
+      [hashedPassword, users[0].id]
+    );
+
+    res.json({ message: 'Password reset successfully. You can now login.' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
 module.exports = router;

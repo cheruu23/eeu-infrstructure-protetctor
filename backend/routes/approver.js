@@ -30,7 +30,7 @@ router.get('/all', async (req, res) => {
                       g.name as group_name
                FROM service_requests r
                JOIN users u ON r.citizen_id = u.id
-               LEFT JOIN groups g ON r.group_id = g.id
+               LEFT JOIN \`groups\` g ON r.group_id = g.id
                WHERE 1=1`;
     const params = [];
     if (category) { sql += ' AND r.category = ?'; params.push(category); }
@@ -91,7 +91,7 @@ router.put('/:id/assign-group', async (req, res) => {
 // Get all groups (for dropdown)
 router.get('/groups', async (req, res) => {
   try {
-    const [groups] = await db.query('SELECT * FROM groups ORDER BY name');
+    const [groups] = await db.query('SELECT * FROM `groups` ORDER BY name');
     res.json({ groups });
   } catch (e) { res.status(500).json({ message: e.message }); }
 });
@@ -99,7 +99,7 @@ router.get('/groups', async (req, res) => {
 // Keep /teams for backward compat (returns groups)
 router.get('/teams', async (req, res) => {
   try {
-    const [groups] = await db.query('SELECT id, name as team_name FROM groups ORDER BY name');
+    const [groups] = await db.query('SELECT id, name as team_name FROM `groups` ORDER BY name');
     res.json({ teams: groups });
   } catch (e) { res.status(500).json({ message: e.message }); }
 });

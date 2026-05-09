@@ -9,7 +9,7 @@ router.use(verifyToken, requireRole(['electrician']));
 router.get('/my-group', async (req, res) => {
   try {
     const [rows] = await db.query(`
-      SELECT g.* FROM groups g
+      SELECT g.* FROM \`groups\` g
       JOIN group_members gm ON g.id = gm.group_id
       WHERE gm.user_id = ?
     `, [req.user.id]);

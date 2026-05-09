@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS users (
   created_at           TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS groups (
+CREATE TABLE IF NOT EXISTS `groups` (
   id          INT AUTO_INCREMENT PRIMARY KEY,
   name        VARCHAR(100) NOT NULL UNIQUE,
   description TEXT,
@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS group_members (
   group_id  INT NOT NULL,
   user_id   INT NOT NULL,
   PRIMARY KEY (group_id, user_id),
-  FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE,
+  FOREIGN KEY (group_id) REFERENCES `groups`(id) ON DELETE CASCADE,
   FOREIGN KEY (user_id)  REFERENCES users(id)  ON DELETE CASCADE
 );
 
@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS service_requests (
   created_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (citizen_id)  REFERENCES users(id)  ON DELETE CASCADE,
   FOREIGN KEY (approver_id) REFERENCES users(id)  ON DELETE SET NULL,
-  FOREIGN KEY (group_id)    REFERENCES groups(id) ON DELETE SET NULL,
+  FOREIGN KEY (group_id)    REFERENCES `groups`(id) ON DELETE SET NULL,
   FOREIGN KEY (team_id)     REFERENCES teams(id)  ON DELETE SET NULL
 );
 
@@ -105,4 +105,23 @@ CREATE TABLE IF NOT EXISTS ratings (
   UNIQUE KEY unique_rating (request_id, citizen_id),
   FOREIGN KEY (request_id) REFERENCES service_requests(id) ON DELETE CASCADE,
   FOREIGN KEY (citizen_id) REFERENCES users(id)            ON DELETE CASCADE
-);
+);➕ Create Group
+bole
+vv
+Create
+⚡
+No groups yet
+
+
+Error
+✕
+You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'groups (name, description) VALUES ('bole', 'vv')' at line 1
+
+Error
+✕
+You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'groups (name, description) VALUES ('bole', 'vv')' at line 1
+
+Error
+✕
+You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'groups (name, description) VALUES ('bole', 'vv')' at line 1
+May

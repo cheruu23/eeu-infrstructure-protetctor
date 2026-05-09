@@ -2,66 +2,60 @@ import { useState, useEffect, useCallback, createContext, useContext } from 'rea
 
 const ToastContext = createContext(null);
 
-// EEU brand colors
-// success  → EEU green  #2e7d32
-// error    → red        #c62828
-// info     → EEU orange #F5A623
-// warning  → amber      #e65100
+const DURATION = 4500;
 
 const CONFIG = {
   success: {
-    bg: '#2e7d32',
-    accent: '#F5A623',          // orange accent bar on left
-    label: 'Success',
+    title:   'Success',
+    color:   '#2e7d32',
+    light:   '#e8f5e9',
+    border:  '#a5d6a7',
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+        <circle cx="14" cy="14" r="14" fill="#2e7d32"/>
+        <path d="M7 14.5l5 5 9-9" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ),
   },
   error: {
-    bg: '#c62828',
-    accent: '#ffcdd2',
-    label: 'Error',
+    title:   'Error',
+    color:   '#c62828',
+    light:   '#ffebee',
+    border:  '#ef9a9a',
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+        <circle cx="14" cy="14" r="14" fill="#c62828"/>
+        <path d="M9 9l10 10M19 9L9 19" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
+      </svg>
+    ),
   },
   info: {
-    bg: '#1b5e20',              // deep EEU green
-    accent: '#F5A623',
-    label: 'Info',
+    title:   'Info',
+    color:   '#1565c0',
+    light:   '#e3f2fd',
+    border:  '#90caf9',
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+        <circle cx="14" cy="14" r="14" fill="#1565c0"/>
+        <path d="M14 12v8M14 9v1" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
+      </svg>
+    ),
   },
   warning: {
-    bg: '#e65100',
-    accent: '#fff9c4',
-    label: 'Warning',
+    title:   'Warning',
+    color:   '#e65100',
+    light:   '#fff3e0',
+    border:  '#ffcc80',
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+        <circle cx="14" cy="14" r="14" fill="#F5A623"/>
+        <path d="M14 8v8M14 19v1" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
+      </svg>
+    ),
   },
 };
 
-const DURATION = 4000;
-
-// Checkmark SVG
-const CheckIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-    <circle cx="9" cy="9" r="9" fill="rgba(255,255,255,0.18)" />
-    <path d="M4.5 9.5l3 3 6-6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
-const CrossIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-    <circle cx="9" cy="9" r="9" fill="rgba(255,255,255,0.18)" />
-    <path d="M6 6l6 6M12 6l-6 6" stroke="white" strokeWidth="2" strokeLinecap="round" />
-  </svg>
-);
-const InfoIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-    <circle cx="9" cy="9" r="9" fill="rgba(255,255,255,0.18)" />
-    <path d="M9 8v5M9 6v.5" stroke="white" strokeWidth="2" strokeLinecap="round" />
-  </svg>
-);
-const WarnIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-    <circle cx="9" cy="9" r="9" fill="rgba(255,255,255,0.18)" />
-    <path d="M9 5v5M9 12v.5" stroke="white" strokeWidth="2" strokeLinecap="round" />
-  </svg>
-);
-
-const ICON = { success: <CheckIcon />, error: <CrossIcon />, info: <InfoIcon />, warning: <WarnIcon /> };
-
-function ToastItem({ id, message, type = 'success', onRemove }) {
+function AlertPopup({ id, message, type, onRemove }) {
   const [visible, setVisible] = useState(false);
   const [progress, setProgress] = useState(100);
   const cfg = CONFIG[type] || CONFIG.success;
@@ -73,92 +67,107 @@ function ToastItem({ id, message, type = 'success', onRemove }) {
       const pct = Math.max(0, 100 - ((Date.now() - start) / DURATION) * 100);
       setProgress(pct);
       if (pct === 0) clearInterval(iv);
-    }, 30);
+    }, 40);
     const t2 = setTimeout(() => {
       setVisible(false);
-      setTimeout(() => onRemove(id), 320);
+      setTimeout(() => onRemove(id), 300);
     }, DURATION);
     return () => { clearTimeout(t1); clearTimeout(t2); clearInterval(iv); };
   }, [id, onRemove]);
 
-  const dismiss = () => { setVisible(false); setTimeout(() => onRemove(id), 320); };
+  const dismiss = () => {
+    setVisible(false);
+    setTimeout(() => onRemove(id), 300);
+  };
 
   return (
-    <div
+    /* Backdrop overlay */
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 9999,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      background: 'rgba(0,0,0,0.35)',
+      opacity: visible ? 1 : 0,
+      transition: 'opacity 0.25s ease',
+      pointerEvents: visible ? 'all' : 'none',
+      padding: 16,
+    }}
       onClick={dismiss}
-      style={{
-        position: 'relative',
-        display: 'flex',
-        alignItems: 'stretch',
-        minWidth: 290,
-        maxWidth: 360,
-        borderRadius: 12,
-        overflow: 'hidden',
-        background: cfg.bg,
-        boxShadow: '0 10px 40px rgba(0,0,0,0.28), 0 2px 8px rgba(0,0,0,0.14)',
-        cursor: 'pointer',
-        transform: visible ? 'translateX(0) scale(1)' : 'translateX(115%) scale(0.92)',
-        opacity: visible ? 1 : 0,
-        transition: 'transform 0.38s cubic-bezier(0.34,1.56,0.64,1), opacity 0.28s ease',
-      }}
     >
-      {/* Left accent stripe */}
-      <div style={{
-        width: 5,
-        background: cfg.accent,
-        flexShrink: 0,
-      }} />
+      {/* Alert card */}
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          background: 'white',
+          borderRadius: 18,
+          width: '100%',
+          maxWidth: 400,
+          boxShadow: '0 24px 64px rgba(0,0,0,0.22), 0 4px 16px rgba(0,0,0,0.1)',
+          overflow: 'hidden',
+          transform: visible ? 'scale(1) translateY(0)' : 'scale(0.88) translateY(24px)',
+          transition: 'transform 0.3s cubic-bezier(0.34,1.56,0.64,1)',
+        }}
+      >
+        {/* Top color bar */}
+        <div style={{ height: 5, background: cfg.color }} />
 
-      {/* EEU logo watermark */}
-      <div style={{
-        position: 'absolute',
-        right: 40,
-        top: '50%',
-        transform: 'translateY(-50%)',
-        opacity: 0.07,
-        pointerEvents: 'none',
-      }}>
-        <img src="/eeu-logo.png" alt="" style={{ height: 48, filter: 'brightness(0) invert(1)' }} />
-      </div>
+        {/* Body */}
+        <div style={{ padding: '24px 24px 20px' }}>
 
-      {/* Main content */}
-      <div style={{ flex: 1, padding: '12px 14px 10px', display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
-        {/* Top row: icon + label + close */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ flexShrink: 0 }}>{ICON[type]}</span>
-          <span style={{ color: cfg.accent, fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', flex: 1 }}>
-            {cfg.label}
-          </span>
+          {/* EEU logo + icon row */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+            {/* EEU logo small */}
+            <img src="/eeu-logo.png" alt="EEU" style={{ height: 28, width: 'auto', objectFit: 'contain', opacity: 0.7 }} />
+            {/* Type icon */}
+            {cfg.icon}
+          </div>
+
+          {/* Title */}
+          <div style={{
+            fontSize: '1.05rem', fontWeight: 800, color: cfg.color,
+            marginBottom: 8, letterSpacing: '-0.01em',
+          }}>
+            {cfg.title}
+          </div>
+
+          {/* Message */}
+          <div style={{
+            fontSize: '0.92rem', color: '#333', lineHeight: 1.55,
+            marginBottom: 20,
+          }}>
+            {message}
+          </div>
+
+          {/* Dismiss button */}
           <button
-            onClick={e => { e.stopPropagation(); dismiss(); }}
+            onClick={dismiss}
             style={{
-              background: 'rgba(255,255,255,0.12)', border: 'none', color: 'rgba(255,255,255,0.8)',
-              width: 20, height: 20, borderRadius: 5, cursor: 'pointer', fontSize: '0.7rem',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+              width: '100%',
+              padding: '11px',
+              background: cfg.color,
+              color: 'white',
+              border: 'none',
+              borderRadius: 10,
+              fontSize: '0.92rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              letterSpacing: '0.02em',
+              transition: 'opacity 0.15s',
             }}
-          >✕</button>
+            onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
+            onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+          >
+            OK
+          </button>
         </div>
 
-        {/* Message */}
-        <div style={{
-          color: 'white',
-          fontSize: '0.88rem',
-          fontWeight: 500,
-          lineHeight: 1.45,
-          wordBreak: 'break-word',
-          paddingLeft: 26,   // align under icon
-        }}>
-          {message}
-        </div>
-
-        {/* Progress bar */}
-        <div style={{ height: 2, background: 'rgba(255,255,255,0.12)', borderRadius: 2, marginTop: 4 }}>
+        {/* Progress bar at bottom */}
+        <div style={{ height: 3, background: '#f0f0f0' }}>
           <div style={{
             height: '100%',
             width: `${progress}%`,
-            background: cfg.accent,
-            borderRadius: 2,
-            transition: 'width 0.03s linear',
+            background: cfg.color,
+            opacity: 0.4,
+            transition: 'width 0.04s linear',
           }} />
         </div>
       </div>
@@ -170,8 +179,9 @@ export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([]);
 
   const show = useCallback((message, type = 'success') => {
+    // Only show one alert at a time — replace existing
     const id = Date.now() + Math.random();
-    setToasts(prev => [...prev, { id, message, type }]);
+    setToasts([{ id, message, type }]);
   }, []);
 
   const remove = useCallback((id) => {
@@ -181,17 +191,9 @@ export function ToastProvider({ children }) {
   return (
     <ToastContext.Provider value={{ show }}>
       {children}
-      <div style={{
-        position: 'fixed', top: 68, right: 14, zIndex: 9999,
-        display: 'flex', flexDirection: 'column', gap: 10,
-        pointerEvents: 'none',
-      }}>
-        {toasts.map(toast => (
-          <div key={toast.id} style={{ pointerEvents: 'all' }}>
-            <ToastItem id={toast.id} message={toast.message} type={toast.type} onRemove={remove} />
-          </div>
-        ))}
-      </div>
+      {toasts.map(t => (
+        <AlertPopup key={t.id} id={t.id} message={t.message} type={t.type} onRemove={remove} />
+      ))}
     </ToastContext.Provider>
   );
 }

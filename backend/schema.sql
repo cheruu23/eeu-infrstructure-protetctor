@@ -88,6 +88,7 @@ CREATE TABLE IF NOT EXISTS infrastructure_reports (
   location_address  VARCHAR(255),
   status            ENUM('open','assigned','resolved') NOT NULL DEFAULT 'open',
   assigned_team_id  INT,
+  group_id          INT NULL,
   resolved_at       TIMESTAMP NULL,
   created_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (citizen_id)        REFERENCES users(id)          ON DELETE CASCADE,

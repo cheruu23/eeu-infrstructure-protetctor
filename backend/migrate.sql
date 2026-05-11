@@ -89,11 +89,16 @@ CREATE TABLE IF NOT EXISTS infrastructure_reports (
   location_address  VARCHAR(255),
   status            ENUM('open','assigned','resolved') NOT NULL DEFAULT 'open',
   assigned_team_id  INT,
+  group_id          INT NULL,
   resolved_at       TIMESTAMP NULL,
   created_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (citizen_id)        REFERENCES users(id)          ON DELETE CASCADE,
   FOREIGN KEY (infrastructure_id) REFERENCES infrastructure(id) ON DELETE SET NULL
 );
+
+-- Add group_id to existing infrastructure_reports if missing
+ALTER TABLE infrastructure_reports
+  ADD COLUMN IF NOT EXISTS group_id INT NULL;
 
 -- ── 8. ratings table ─────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS ratings (

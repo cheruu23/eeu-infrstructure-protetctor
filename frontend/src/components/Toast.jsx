@@ -5,10 +5,10 @@ const ToastContext = createContext(null);
 const DURATION = 4000;
 
 const CONFIG = {
-  success: { title: 'Success', color: '#2e7d32', light: '#e8f5e9', border: '#a5d6a7' },
-  error:   { title: 'Error',   color: '#c62828', light: '#ffebee', border: '#ef9a9a' },
-  info:    { title: 'Info',    color: '#1565c0', light: '#e3f2fd', border: '#90caf9' },
-  warning: { title: 'Warning', color: '#e65100', light: '#fff3e0', border: '#ffcc80' },
+  success: { title: 'Success', color: '#2e7d32', border: '#a5d6a7' },
+  error:   { title: 'Error',   color: '#c62828', border: '#ef9a9a' },
+  info:    { title: 'Info',    color: '#1565c0', border: '#90caf9' },
+  warning: { title: 'Warning', color: '#e65100', border: '#ffcc80' },
 };
 
 const ICONS = {
@@ -78,7 +78,6 @@ function ToastItem({ id, message, type, onRemove }) {
         transform: visible ? 'translateX(0) scale(1)' : 'translateX(110%) scale(0.95)',
         opacity: visible ? 1 : 0,
         transition: 'transform 0.35s cubic-bezier(0.34,1.56,0.64,1), opacity 0.28s ease',
-        // CRITICAL: no pointer-events blocking — this is NOT a modal overlay
         pointerEvents: 'all',
       }}
     >
@@ -127,7 +126,6 @@ export function ToastProvider({ children }) {
   return (
     <ToastContext.Provider value={{ show }}>
       {children}
-      {/* Top-right stack — NO backdrop, NO pointer-events blocking */}
       <div style={{
         position: 'fixed',
         top: 68,
@@ -136,7 +134,7 @@ export function ToastProvider({ children }) {
         display: 'flex',
         flexDirection: 'column',
         gap: 10,
-        pointerEvents: 'none', // container doesn't block clicks
+        pointerEvents: 'none',
       }}>
         {toasts.map(t => (
           <ToastItem key={t.id} id={t.id} message={t.message} type={t.type} onRemove={remove} />

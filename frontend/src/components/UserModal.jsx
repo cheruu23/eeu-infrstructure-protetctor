@@ -46,10 +46,7 @@ export default function UserModal({ mode, user, onSave, onClose, loading }) {
           <button onClick={onClose} style={{ background:'none', border:'none', fontSize:'1.4rem', cursor:'pointer', color:'#888' }}>×</button>
         </div>
 
-        {error && <div className="alert alert-error" style={{ marginBottom:16 }}>{error}</div>}
-
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
+        <form onSubmit={handleSubmit}>          <div className="form-group">
             <label>{t.fullName} *</label>
             <input name="name" value={form.name} onChange={handle} required placeholder="John Doe" />
           </div>

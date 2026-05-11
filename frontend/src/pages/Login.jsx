@@ -156,8 +156,8 @@ export default function Login() {
         {/* Tabs — only show login/register tabs, not forgot/reset */}
         {(tab === 'login' || tab === 'register') && (
           <div className="auth-tabs">
-            <button className={`auth-tab ${tab === 'login' ? 'active' : ''}`} onClick={() => { setTab('login'); setApiError(''); setSuccess(''); }}>{t.login}</button>
-            <button className={`auth-tab ${tab === 'register' ? 'active' : ''}`} onClick={() => { setTab('register'); setApiError(''); setSuccess(''); }}>{t.register}</button>
+            <button className={`auth-tab ${tab === 'login' ? 'active' : ''}`} onClick={() => setTab('login')}>{t.login}</button>
+            <button className={`auth-tab ${tab === 'register' ? 'active' : ''}`} onClick={() => setTab('register')}>{t.register}</button>
           </div>
         )}
 
@@ -175,7 +175,7 @@ export default function Login() {
               {loading ? t.loggingIn : t.login}
             </button>
             <div style={{ textAlign: 'center' }}>
-              <button type="button" onClick={() => { setTab('forgot'); setApiError(''); setSuccess(''); }}
+              <button type="button" onClick={() => setTab('forgot')}
                 style={{ background: 'none', border: 'none', color: '#2e7d32', fontSize: '0.85rem', cursor: 'pointer', textDecoration: 'underline' }}>
                 Forgot password?
               </button>

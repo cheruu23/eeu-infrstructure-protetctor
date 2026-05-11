@@ -34,7 +34,6 @@ export default function AdminDashboard() {
   const [userSearch, setUserSearch] = useState('');
   const [userRoleFilter, setUserRoleFilter] = useState('all');
   const [modalLoading, setModalLoading] = useState(false);
-  const [modalError, setModalError] = useState('');
 
   // Groups state
   const [groups, setGroups] = useState([]);
@@ -161,12 +160,12 @@ export default function AdminDashboard() {
     catch (err) { toast.show(err.response?.data?.message || 'Failed', 'error'); }
   };
 
-  const openCreate = () => { setModalError(''); setEditingUser(null); setUserModal('create'); };
-  const openEdit = (user) => { setModalError(''); setEditingUser(user); setUserModal('edit'); };
-  const closeModal = () => { setUserModal(null); setEditingUser(null); setModalError(''); };
+  const openCreate = () => { setEditingUser(null); setUserModal('create'); };
+  const openEdit = (user) => { setEditingUser(user); setUserModal('edit'); };
+  const closeModal = () => { setUserModal(null); setEditingUser(null); };
 
   const handleSaveUser = async (formData) => {
-    setModalLoading(true); setModalError('');
+    setModalLoading(true);
     try {
       if (userModal === 'create') {
         const res = await api.post('/admin/users', formData);
@@ -180,7 +179,7 @@ export default function AdminDashboard() {
       // Always re-fetch to get the full accurate list from DB
       fetchUsers();
     } catch (err) {
-      setModalError(err.response?.data?.message || 'Operation failed');
+      toast.show(err.response?.data?.message || 'Operation failed', 'error');
     } finally {
       setModalLoading(false);
     }
@@ -667,7 +666,6 @@ export default function AdminDashboard() {
             onSave={handleSaveUser}
             onClose={closeModal}
             loading={modalLoading}
-            error={modalError}
           />
         )}
       </div>

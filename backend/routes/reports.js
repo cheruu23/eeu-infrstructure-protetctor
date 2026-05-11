@@ -69,17 +69,19 @@ router.post('/', verifyToken, requireRole(['citizen']), async (req, res) => {
 router.get('/my', verifyToken, requireRole(['citizen']), async (req, res) => {
   try {
     const [reports] = await db.query(
-      `SELECT r.*, i.asset_type, i.description as asset_description, t.team_name as assigned_team
+      `SELECT r.*, i.asset_type, i.description as asset_description,
+              g.name as assigned_team
        FROM infrastructure_reports r
        LEFT JOIN infrastructure i ON r.infrastructure_id = i.id
-       LEFT JOIN teams t ON r.assigned_team_id = t.id
+       LEFT JOIN \`groups\` g ON r.group_id = g.id
        WHERE r.citizen_id = ?
        ORDER BY r.created_at DESC`,
       [req.user.id]
     );
     res.json({ reports });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error('MY REPORTS ERROR:', error.message);
+    res.status(500).json({ message: error.message });
   }
 });
 

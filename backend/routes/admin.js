@@ -260,17 +260,17 @@ router.get('/reports', async (req, res) => {
     const [reports] = await db.query(
       `SELECT r.*, u.name as citizen_name, u.phone as citizen_phone,
               i.asset_type, i.description as asset_description,
-              COALESCE(g.name, t.team_name) as assigned_team
+              g.name as assigned_team
        FROM infrastructure_reports r
        JOIN users u ON r.citizen_id = u.id
        LEFT JOIN infrastructure i ON r.infrastructure_id = i.id
        LEFT JOIN \`groups\` g ON r.group_id = g.id
-       LEFT JOIN teams t ON r.assigned_team_id = t.id
        ORDER BY r.created_at DESC`
     );
     res.json({ reports });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error('REPORTS FETCH ERROR:', error.message);
+    res.status(500).json({ message: error.message });
   }
 });
 

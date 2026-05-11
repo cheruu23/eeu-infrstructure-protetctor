@@ -40,14 +40,12 @@ export default function ApproverDashboard() {
   useEffect(() => { fetchData(); }, []);
 
   const approve = async (id) => {
-    setMsg(''); setError('');
     try { await api.put(`/approver/${id}/approve`); toast.show('Request approved! ✓', 'success'); fetchData(); }
     catch (err) { toast.show(err.response?.data?.message || 'Failed', 'error'); }
   };
 
   const reject = async (id) => {
     if (!rejectForm.reason) return toast.show('Enter a rejection reason', 'error');
-    setMsg(''); setError('');
     try {
       await api.put(`/approver/${id}/reject`, { reason: rejectForm.reason });
       toast.show('Request rejected.', 'info'); setRejectForm({ id: null, reason: '' }); fetchData();
@@ -56,7 +54,6 @@ export default function ApproverDashboard() {
 
   const assignGroup = async (id) => {
     if (!assignForm.group_id) return toast.show('Select a group', 'error');
-    setMsg(''); setError('');
     try {
       await api.put(`/approver/${id}/assign-group`, { group_id: assignForm.group_id });
       toast.show('Group assigned! ⚡', 'success'); setAssignForm({ id: null, group_id: '' }); fetchData();

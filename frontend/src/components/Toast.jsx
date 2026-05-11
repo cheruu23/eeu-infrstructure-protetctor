@@ -2,60 +2,43 @@ import { useState, useEffect, useCallback, createContext, useContext } from 'rea
 
 const ToastContext = createContext(null);
 
-const DURATION = 4500;
+const DURATION = 4000;
 
 const CONFIG = {
-  success: {
-    title:   'Success',
-    color:   '#2e7d32',
-    light:   '#e8f5e9',
-    border:  '#a5d6a7',
-    icon: (
-      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-        <circle cx="14" cy="14" r="14" fill="#2e7d32"/>
-        <path d="M7 14.5l5 5 9-9" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-      </svg>
-    ),
-  },
-  error: {
-    title:   'Error',
-    color:   '#c62828',
-    light:   '#ffebee',
-    border:  '#ef9a9a',
-    icon: (
-      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-        <circle cx="14" cy="14" r="14" fill="#c62828"/>
-        <path d="M9 9l10 10M19 9L9 19" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
-      </svg>
-    ),
-  },
-  info: {
-    title:   'Info',
-    color:   '#1565c0',
-    light:   '#e3f2fd',
-    border:  '#90caf9',
-    icon: (
-      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-        <circle cx="14" cy="14" r="14" fill="#1565c0"/>
-        <path d="M14 12v8M14 9v1" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
-      </svg>
-    ),
-  },
-  warning: {
-    title:   'Warning',
-    color:   '#e65100',
-    light:   '#fff3e0',
-    border:  '#ffcc80',
-    icon: (
-      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-        <circle cx="14" cy="14" r="14" fill="#F5A623"/>
-        <path d="M14 8v8M14 19v1" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
-      </svg>
-    ),
-  },
+  success: { title: 'Success', color: '#2e7d32', light: '#e8f5e9', border: '#a5d6a7' },
+  error:   { title: 'Error',   color: '#c62828', light: '#ffebee', border: '#ef9a9a' },
+  info:    { title: 'Info',    color: '#1565c0', light: '#e3f2fd', border: '#90caf9' },
+  warning: { title: 'Warning', color: '#e65100', light: '#fff3e0', border: '#ffcc80' },
 };
 
-function AlertPopup({ id, message, type, onRemove }) {
+const ICONS = {
+  success: (
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+      <circle cx="11" cy="11" r="11" fill="#2e7d32"/>
+      <path d="M5.5 11.5l4 4 7-8" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ),
+  error: (
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+      <circle cx="11" cy="11" r="11" fill="#c62828"/>
+      <path d="M7 7l8 8M15 7l-8 8" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+    </svg>
+  ),
+  info: (
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+      <circle cx="11" cy="11" r="11" fill="#1565c0"/>
+      <path d="M11 10v6M11 7.5v.5" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+    </svg>
+  ),
+  warning: (
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+      <circle cx="11" cy="11" r="11" fill="#e65100"/>
+      <path d="M11 7v6M11 15v.5" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+    </svg>
+  ),
+};
+
+function ToastItem({ id, message, type, onRemove }) {
   const [visible, setVisible] = useState(false);
   const [progress, setProgress] = useState(100);
   const cfg = CONFIG[type] || CONFIG.success;
@@ -75,101 +58,55 @@ function AlertPopup({ id, message, type, onRemove }) {
     return () => { clearTimeout(t1); clearTimeout(t2); clearInterval(iv); };
   }, [id, onRemove]);
 
-  const dismiss = () => {
-    setVisible(false);
-    setTimeout(() => onRemove(id), 300);
-  };
+  const dismiss = () => { setVisible(false); setTimeout(() => onRemove(id), 300); };
 
   return (
-    /* Backdrop overlay */
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 9999,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: 'rgba(0,0,0,0.35)',
-      opacity: visible ? 1 : 0,
-      transition: 'opacity 0.25s ease',
-      pointerEvents: visible ? 'all' : 'none',
-      padding: 16,
-    }}
+    <div
       onClick={dismiss}
+      style={{
+        background: 'white',
+        border: `1px solid ${cfg.border}`,
+        borderLeft: `5px solid ${cfg.color}`,
+        borderRadius: 12,
+        padding: '14px 16px 10px',
+        minWidth: 280,
+        maxWidth: 380,
+        boxShadow: '0 8px 32px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.08)',
+        cursor: 'pointer',
+        overflow: 'hidden',
+        position: 'relative',
+        transform: visible ? 'translateX(0) scale(1)' : 'translateX(110%) scale(0.95)',
+        opacity: visible ? 1 : 0,
+        transition: 'transform 0.35s cubic-bezier(0.34,1.56,0.64,1), opacity 0.28s ease',
+        // CRITICAL: no pointer-events blocking — this is NOT a modal overlay
+        pointerEvents: 'all',
+      }}
     >
-      {/* Alert card */}
-      <div
-        onClick={e => e.stopPropagation()}
-        style={{
-          background: 'white',
-          borderRadius: 18,
-          width: '100%',
-          maxWidth: 400,
-          boxShadow: '0 24px 64px rgba(0,0,0,0.22), 0 4px 16px rgba(0,0,0,0.1)',
-          overflow: 'hidden',
-          transform: visible ? 'scale(1) translateY(0)' : 'scale(0.88) translateY(24px)',
-          transition: 'transform 0.3s cubic-bezier(0.34,1.56,0.64,1)',
-        }}
-      >
-        {/* Top color bar */}
-        <div style={{ height: 5, background: cfg.color }} />
+      {/* EEU logo watermark */}
+      <div style={{ position: 'absolute', right: 36, top: '50%', transform: 'translateY(-50%)', opacity: 0.05, pointerEvents: 'none' }}>
+        <img src="/eeu-logo.png" alt="" style={{ height: 44 }} />
+      </div>
 
-        {/* Body */}
-        <div style={{ padding: '24px 24px 20px' }}>
-
-          {/* EEU logo + icon row */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
-            {/* EEU logo small */}
-            <img src="/eeu-logo.png" alt="EEU" style={{ height: 28, width: 'auto', objectFit: 'contain', opacity: 0.7 }} />
-            {/* Type icon */}
-            {cfg.icon}
-          </div>
-
-          {/* Title */}
-          <div style={{
-            fontSize: '1.05rem', fontWeight: 800, color: cfg.color,
-            marginBottom: 8, letterSpacing: '-0.01em',
-          }}>
+      {/* Content */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+        <span style={{ flexShrink: 0, marginTop: 1 }}>{ICONS[type] || ICONS.success}</span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: '0.72rem', fontWeight: 700, color: cfg.color, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 3 }}>
             {cfg.title}
           </div>
-
-          {/* Message */}
-          <div style={{
-            fontSize: '0.92rem', color: '#333', lineHeight: 1.55,
-            marginBottom: 20,
-          }}>
+          <div style={{ fontSize: '0.88rem', color: '#333', lineHeight: 1.45, wordBreak: 'break-word' }}>
             {message}
           </div>
-
-          {/* Dismiss button */}
-          <button
-            onClick={dismiss}
-            style={{
-              width: '100%',
-              padding: '11px',
-              background: cfg.color,
-              color: 'white',
-              border: 'none',
-              borderRadius: 10,
-              fontSize: '0.92rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-              letterSpacing: '0.02em',
-              transition: 'opacity 0.15s',
-            }}
-            onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
-            onMouseLeave={e => e.currentTarget.style.opacity = '1'}
-          >
-            OK
-          </button>
         </div>
+        <button
+          onClick={e => { e.stopPropagation(); dismiss(); }}
+          style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: '1rem', flexShrink: 0, padding: '0 2px', lineHeight: 1 }}
+        >✕</button>
+      </div>
 
-        {/* Progress bar at bottom */}
-        <div style={{ height: 3, background: '#f0f0f0' }}>
-          <div style={{
-            height: '100%',
-            width: `${progress}%`,
-            background: cfg.color,
-            opacity: 0.4,
-            transition: 'width 0.04s linear',
-          }} />
-        </div>
+      {/* Progress bar */}
+      <div style={{ height: 3, background: '#f0f0f0', borderRadius: 2, marginTop: 10 }}>
+        <div style={{ height: '100%', width: `${progress}%`, background: cfg.color, borderRadius: 2, transition: 'width 0.04s linear' }} />
       </div>
     </div>
   );
@@ -179,9 +116,8 @@ export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([]);
 
   const show = useCallback((message, type = 'success') => {
-    // Only show one alert at a time — replace existing
     const id = Date.now() + Math.random();
-    setToasts([{ id, message, type }]);
+    setToasts(prev => [...prev.slice(-2), { id, message, type }]);
   }, []);
 
   const remove = useCallback((id) => {
@@ -191,9 +127,21 @@ export function ToastProvider({ children }) {
   return (
     <ToastContext.Provider value={{ show }}>
       {children}
-      {toasts.map(t => (
-        <AlertPopup key={t.id} id={t.id} message={t.message} type={t.type} onRemove={remove} />
-      ))}
+      {/* Top-right stack — NO backdrop, NO pointer-events blocking */}
+      <div style={{
+        position: 'fixed',
+        top: 68,
+        right: 14,
+        zIndex: 9999,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 10,
+        pointerEvents: 'none', // container doesn't block clicks
+      }}>
+        {toasts.map(t => (
+          <ToastItem key={t.id} id={t.id} message={t.message} type={t.type} onRemove={remove} />
+        ))}
+      </div>
     </ToastContext.Provider>
   );
 }

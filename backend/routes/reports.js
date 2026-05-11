@@ -61,7 +61,8 @@ router.post('/', verifyToken, requireRole(['citizen']), async (req, res) => {
 
     res.status(201).json({ message: 'Report submitted successfully', report_id: result.insertId });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error('REPORT SUBMIT ERROR:', error.message);
+    res.status(500).json({ message: error.message });
   }
 });
 

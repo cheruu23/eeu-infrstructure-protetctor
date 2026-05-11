@@ -377,9 +377,10 @@ export default function CitizenDashboard() {
                 const res = await api.post('/reports', draft);
                 setSubmittedReport({ ...draft, id: res.data.report_id });
                 setReportStage('confirmed');
+                toast.show(t.reportSubmitted, 'success');
                 fetchReports();
               } catch (err) {
-                setError(err.response?.data?.message || 'Failed to submit report');
+                toast.show(err.response?.data?.message || 'Failed to submit report', 'error');
                 setReportStage('idle');
               } finally { setSubmitLoading(false); }
             }}

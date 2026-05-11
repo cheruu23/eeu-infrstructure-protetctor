@@ -275,7 +275,9 @@ router.get('/reports', async (req, res) => {
 
 router.put('/reports/:id/assign', async (req, res) => {
   const { team_id } = req.body;
+  if (!team_id) return res.status(400).json({ message: 'team_id is required' });
   try {
+    // Support both team_id and group_id for compatibility
     await db.query(
       "UPDATE infrastructure_reports SET assigned_team_id = ?, status = 'assigned' WHERE id = ?",
       [team_id, req.params.id]

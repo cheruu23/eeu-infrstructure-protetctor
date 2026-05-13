@@ -67,21 +67,23 @@ export default function AdminDashboard() {
   };
 
   const fetchAll = async () => {
-    const safe = async (fn, fallback) => { try { return await fn(); } catch { return fallback; } };
+    const safe = async (fn, fallback, label) => {
+      try { return await fn(); }
+      catch (e) { console.error(`fetchAll [${label}] error:`, e.response?.data?.message || e.message); return fallback; }
+    };
 
     const [s, i, r, sr, g] = await Promise.all([
-      safe(() => api.get('/admin/stats'),            { data: {} }),
-      safe(() => api.get('/admin/infrastructure'),   { data: { assets: [] } }),
-      safe(() => api.get('/admin/reports'),          { data: { reports: [] } }),
-      safe(() => api.get('/admin/service-requests'), { data: { requests: [] } }),
-      safe(() => api.get('/groups'),                 { data: { groups: [] } }),
+      safe(() => api.get('/admin/stats'),            { data: {} },              'stats'),
+      safe(() => api.get('/admin/infrastructure'),   { data: { assets: [] } },  'infra'),
+      safe(() => api.get('/admin/reports'),          { data: { reports: [] } }, 'reports'),
+      safe(() => api.get('/admin/service-requests'), { data: { requests: [] } },'service-requests'),
+      safe(() => api.get('/groups'),                 { data: { groups: [] } },  'groups'),
     ]);
 
     setStats(s.data);
     setInfrastructure(i.data.assets || []);
     setReports(r.data.reports || []);
     setServiceRequests(sr.data.requests || []);
-    // use groups as teams for report assignment
     setTeams((g.data.groups || []).map(grp => ({ id: grp.id, team_name: grp.name })));
 
     fetchUsers();
@@ -436,7 +438,10 @@ export default function AdminDashboard() {
         {/* ── Reports ── */}
         {tab === 'Reports' && (
           <>
-            <h2 className="page-title">{t.infraReports}</h2>
+            <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16}}>
+              <h2 className="page-title" style={{margin:0}}>{t.infraReports}</h2>
+              <button className="btn btn-outline btn-sm" onClick={fetchAll}>🔄 Refresh</button>
+            </div>
             {reports.length === 0 ? (
               <div className="empty"><div className="empty-icon">✅</div><p>No reports yet</p></div>
             ) : reports.map(r => (
@@ -471,14 +476,14 @@ export default function AdminDashboard() {
                       <div style={{display:'flex', gap:6}}>
                         <select style={{padding:'5px 8px', borderRadius:6, border:'1px solid #ddd'}}
                           value={assignReport.team_id} onChange={e => setAssignReport({...assignReport, team_id: e.target.value})}>
-                          <option value="">Select team...</option>
-                          {teams.map(t => <option key={t.id} value={t.id}>{t.team_name}</option>)}
+                          <option value="">Select group...</option>
+                          {groups.map(g => <option key={g.id} value={g.id}>⚡ {g.name}</option>)}
                         </select>
                         <button className="btn btn-orange btn-sm" onClick={() => assignReportTeam(r.id)}>Assign</button>
                         <button className="btn btn-outline btn-sm" onClick={() => setAssignReport({id:null, team_id:''})}>Cancel</button>
                       </div>
                     ) : (
-                      <button className="btn btn-orange btn-sm" onClick={() => setAssignReport({ id: r.id, team_id: '' })}>👷 Assign Team</button>
+                      <button className="btn btn-orange btn-sm" onClick={() => setAssignReport({ id: r.id, team_id: '' })}>👷 Assign Group</button>
                     )
                   )}
                 </div>

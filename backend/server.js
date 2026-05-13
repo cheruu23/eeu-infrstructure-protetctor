@@ -44,4 +44,24 @@ app.get('/test-db', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+// Run safe migrations on startup — adds missing columns without dropping data
+async function runMigrations() {
+  const migrations = [
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token VARCHAR(255) NULL",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token_expires DATETIME NULL",
+    "ALTER TABLE service_requests ADD COLUMN IF NOT EXISTS category ENUM('power_outage','billing','meter','connection','maintenance','other') DEFAULT 'other'",
+    "ALTER TABLE service_requests ADD COLUMN IF NOT EXISTS group_id INT NULL",
+    "ALTER TABLE infrastructure_reports ADD COLUMN IF NOT EXISTS group_id INT NULL",
+  ];
+  for (const sql of migrations) {
+    try { await db.query(sql); }
+    catch (e) { /* column may already exist — safe to ignore */ }
+  }
+  console.log('Migrations checked.');
+}
+
+app.listen(PORT, async () => {
+  console.log(`Server running on port ${PORT}`);
+  await runMigrations();
+});

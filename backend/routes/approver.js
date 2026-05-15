@@ -57,11 +57,11 @@ router.get('/stats', async (req, res) => {
 // Approve
 router.put('/:id/approve', async (req, res) => {
   try {
-    const [rows] = await db.query('SELECT * FROM service_requests WHERE id = ? AND status = "pending"', [req.params.id]);
+    const [rows] = await db.query("SELECT * FROM service_requests WHERE id = ? AND status = 'pending'", [req.params.id]);
     if (rows.length === 0) return res.status(404).json({ message: 'Not found or already processed' });
     await db.query("UPDATE service_requests SET status = 'approved', approver_id = ?, approved_at = NOW() WHERE id = ?", [req.user.id, req.params.id]);
     res.json({ message: 'Approved' });
-  } catch (e) { console.error('APPROVE ERROR:', e.message); res.status(500).json({ message: e.message }); }
+  } catch (e) { res.status(500).json({ message: e.message }); }
 });
 
 // Reject
@@ -69,11 +69,11 @@ router.put('/:id/reject', async (req, res) => {
   const { reason } = req.body;
   if (!reason) return res.status(400).json({ message: 'Rejection reason is required' });
   try {
-    const [rows] = await db.query('SELECT * FROM service_requests WHERE id = ? AND status = "pending"', [req.params.id]);
+    const [rows] = await db.query("SELECT * FROM service_requests WHERE id = ? AND status = 'pending'", [req.params.id]);
     if (rows.length === 0) return res.status(404).json({ message: 'Not found or already processed' });
     await db.query("UPDATE service_requests SET status = 'rejected', approver_id = ?, rejection_reason = ? WHERE id = ?", [req.user.id, reason, req.params.id]);
     res.json({ message: 'Rejected' });
-  } catch (e) { console.error('REJECT ERROR:', e.message); res.status(500).json({ message: e.message }); }
+  } catch (e) { res.status(500).json({ message: e.message }); }
 });
 
 // Assign to electrician group
@@ -81,11 +81,11 @@ router.put('/:id/assign-group', async (req, res) => {
   const { group_id } = req.body;
   if (!group_id) return res.status(400).json({ message: 'group_id is required' });
   try {
-    const [rows] = await db.query('SELECT * FROM service_requests WHERE id = ? AND status = "approved"', [req.params.id]);
+    const [rows] = await db.query("SELECT * FROM service_requests WHERE id = ? AND status = 'approved'", [req.params.id]);
     if (rows.length === 0) return res.status(404).json({ message: 'Not found or not approved yet' });
     await db.query("UPDATE service_requests SET status = 'assigned', group_id = ? WHERE id = ?", [group_id, req.params.id]);
     res.json({ message: 'Group assigned' });
-  } catch (e) { console.error('ASSIGN ERROR:', e.message); res.status(500).json({ message: e.message }); }
+  } catch (e) { res.status(500).json({ message: e.message }); }
 });
 
 // Get all groups (for dropdown)

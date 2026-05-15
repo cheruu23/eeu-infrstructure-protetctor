@@ -34,10 +34,12 @@ export default function ApproverDashboard() {
       setAll(a.data.requests);
       setGroups(g.data.groups);
       setStats(s.data);
-    } catch {}
+    } catch {
+      toast.show('Failed to load dashboard data', 'error');
+    }
   };
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => { fetchData(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const approve = async (id) => {
     try { await api.put(`/approver/${id}/approve`); toast.show('Request approved! ✓', 'success'); fetchData(); }

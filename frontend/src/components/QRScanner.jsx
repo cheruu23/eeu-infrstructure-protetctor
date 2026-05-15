@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useId } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
 
 /**
@@ -11,15 +11,20 @@ export default function QRScanner({ onScan, onError, onClose }) {
   const [permissionDenied, setPermissionDenied] = useState(false);
   const scannerRef = useRef(null);
   // Unique ID per mount so React never reuses a dirty container
-  const containerIdRef = useRef(`qr-box-${Date.now()}`);
+  const instanceId = useId();
+  const containerId = `qr-box-${instanceId.replace(/:/g, '')}`;
 
   const stopScanner = useCallback(async () => {
     if (!scannerRef.current) return;
     try {
       const state = scannerRef.current.getState?.();
       if (state === 2 || state === 3) await scannerRef.current.stop();
-    } catch {}
-    try { scannerRef.current.clear(); } catch {}
+    } catch {
+      // scanner may already be stopped
+    }
+    try { scannerRef.current.clear(); } catch {
+      // clear is best-effort on teardown
+    }
     scannerRef.current = null;
   }, []);
 
@@ -30,11 +35,11 @@ export default function QRScanner({ onScan, onError, onClose }) {
     // Wait one tick for the DOM container to be ready
     await new Promise(r => setTimeout(r, 80));
 
-    const container = document.getElementById(containerIdRef.current);
+    const container = document.getElementById(containerId);
     if (!container) { setStatus('error'); return; }
 
     try {
-      const scanner = new Html5Qrcode(containerIdRef.current);
+      const scanner = new Html5Qrcode(containerId);
       scannerRef.current = scanner;
 
       await scanner.start(
@@ -59,7 +64,7 @@ export default function QRScanner({ onScan, onError, onClose }) {
         if (onError) onError('Could not start camera. Use manual entry instead.');
       }
     }
-  }, [stopScanner, onScan, onError]);
+  }, [stopScanner, onScan, onError, containerId]);
 
   useEffect(() => {
     startScanner(facingMode);
@@ -112,7 +117,7 @@ export default function QRScanner({ onScan, onError, onClose }) {
 
       {/* Scanner viewport — stable unique ID, never reused */}
       <div
-        id={containerIdRef.current}
+        id={containerId}
         style={{
           width: '100%', minHeight: 260, borderRadius: 10,
           overflow: 'hidden', background: '#111',

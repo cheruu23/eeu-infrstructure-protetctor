@@ -3,8 +3,8 @@ import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import ReportInfrastructure from './ReportInfrastructure';
 import LocationMap from '../components/LocationMap';
-import { useToast } from '../components/Toast';
 import { useLang } from '../context/LangContext';
+import { useToast } from '../components/Toast';
 
 const TABS = ['Dashboard', 'My Requests', 'Submit Request', 'Report Problem', 'My Reports'];
 const CAT_LABELS = { power_outage:'Power Outage', billing:'Billing', meter:'Meter', connection:'Connection', maintenance:'Maintenance', other:'Other' };
@@ -107,8 +107,8 @@ function ConfirmationCard({ data, type, onViewAll, onSubmitAnother }) {
 
 export default function CitizenDashboard() {
   const { user } = useAuth();
-  const toast = useToast();
   const { t } = useLang();
+  const toast = useToast();
   const [tab, setTab] = useState('Dashboard');
   const [requests, setRequests] = useState([]);
   const [myReports, setMyReports] = useState([]);
@@ -126,10 +126,14 @@ export default function CitizenDashboard() {
   const [submittedReport, setSubmittedReport] = useState(null);
 
   const fetchRequests = async () => {
-    try { const res = await api.get('/requests/my'); setRequests(res.data.requests); } catch {}
+    try { const res = await api.get('/requests/my'); setRequests(res.data.requests); } catch {
+      // requests load is best-effort on mount
+    }
   };
   const fetchReports = async () => {
-    try { const res = await api.get('/reports/my'); setMyReports(res.data.reports); } catch {}
+    try { const res = await api.get('/reports/my'); setMyReports(res.data.reports); } catch {
+      // reports load is best-effort on mount
+    }
   };
 
   useEffect(() => { fetchRequests(); fetchReports(); }, []);
@@ -177,7 +181,6 @@ export default function CitizenDashboard() {
     openReports: myReports.filter(r => r.status === 'open').length,
   };
 
-  const tabIcons = { Dashboard:'🏠', 'My Requests': t.myRequests, 'Submit Request': t.submitRequest, 'Report Problem': t.reportProblem, 'My Reports': t.myReports };
   const TABS = ['Dashboard', 'My Requests', 'Submit Request', 'Report Problem', 'My Reports'];
   const TAB_ICONS = { Dashboard:'🏠', 'My Requests':'📋', 'Submit Request':'➕', 'Report Problem':'⚠️', 'My Reports':'📍' };
 
@@ -366,7 +369,6 @@ export default function CitizenDashboard() {
         {/* ── Report Infrastructure Problem ── */}
         {tab === 'Report Problem' && (
           <ReportInfrastructure
-            onBack={() => goTab('My Reports')}
             onDraft={(draft) => { setReportDraft(draft); setReportStage('review'); }}
             reportStage={reportStage}
             reportDraft={reportDraft}

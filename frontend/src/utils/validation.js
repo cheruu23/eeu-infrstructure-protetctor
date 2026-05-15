@@ -8,7 +8,7 @@ export function validateName(name) {
   if (!name || !name.trim()) return { valid: false, message: 'Name is required' };
   if (name.trim().length < 2) return { valid: false, message: 'Name must be at least 2 characters' };
   // Allow Latin letters, Ethiopian (Amharic/Oromo) Unicode, spaces, hyphens, apostrophes
-  const namePattern = /^[\p{L}\s'\-]+$/u;
+  const namePattern = /^[\p{L}\s'-]+$/u;
   if (!namePattern.test(name.trim())) {
     return { valid: false, message: 'Name must contain only letters (no numbers or special characters)' };
   }
@@ -24,7 +24,7 @@ export function validatePassword(password) {
     length:    password.length >= 8,
     uppercase: /[A-Z]/.test(password),
     number:    /\d/.test(password),
-    special:   /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
+    special:   /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password),
   };
 
   const passed = Object.values(checks).filter(Boolean).length;

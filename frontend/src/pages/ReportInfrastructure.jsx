@@ -7,7 +7,7 @@ import { useToast } from '../components/Toast';
 const REPORT_TYPES = ['damage', 'theft', 'hazard', 'outage', 'other'];
 
 export default function ReportInfrastructure({
-  onBack, onDraft,
+  onDraft,
   reportStage, reportDraft, submittedReport,
   onConfirmReport, onEditReport, onReportViewAll, onReportAnother, submitLoading
 }) {
@@ -28,7 +28,7 @@ export default function ReportInfrastructure({
   }, []);
 
   const detectLocation = () => {
-    if (!navigator.geolocation) return setError('Geolocation not supported');
+    if (!navigator.geolocation) return toast.show('Geolocation not supported', 'error');
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
@@ -61,7 +61,9 @@ export default function ReportInfrastructure({
       try {
         const res = await api.get(`/reports/infrastructure/lookup/${data.asset_code}`);
         setForm(f => ({ ...f, infrastructure_id: res.data.asset.id }));
-      } catch {}
+      } catch {
+        // asset lookup optional for QR payload
+      }
     } catch {
       // plain text asset code
       setForm(f => ({ ...f, asset_code: decodedText }));
@@ -69,7 +71,9 @@ export default function ReportInfrastructure({
         const res = await api.get(`/reports/infrastructure/lookup/${decodedText}`);
         setScannedAsset(res.data.asset);
         setForm(f => ({ ...f, infrastructure_id: res.data.asset.id, location_address: res.data.asset.location || f.location_address }));
-      } catch {}
+      } catch {
+        // asset lookup optional for raw QR text
+      }
     }
   };
 

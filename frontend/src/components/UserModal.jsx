@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useLang } from '../context/LangContext';
 import { validateEthiopianPhone, normalizePhone } from '../utils/validation';
 import { useToast } from '../components/Toast';
@@ -6,18 +6,21 @@ import { useToast } from '../components/Toast';
 const ROLES = ['citizen', 'approver', 'electrician', 'admin'];
 const EMPTY = { name: '', email: '', password: '', phone: '', role: 'citizen', service_id: '', team_name: '' };
 
+function buildForm(mode, user) {
+  if (mode === 'edit' && user) {
+    return {
+      name: user.name || '', email: user.email || '', password: '', phone: user.phone || '',
+      role: user.role || 'citizen', service_id: user.service_id || '', team_name: user.team_name || '',
+    };
+  }
+  return EMPTY;
+}
+
 export default function UserModal({ mode, user, onSave, onClose, loading }) {
   const { t } = useLang();
   const toast = useToast();
-  const [form, setForm] = useState(EMPTY);
+  const [form, setForm] = useState(() => buildForm(mode, user));
   const [phoneError, setPhoneError] = useState('');
-
-  useEffect(() => {
-    if (mode === 'edit' && user) {
-      setForm({ name: user.name||'', email: user.email||'', password: '', phone: user.phone||'', role: user.role||'citizen', service_id: user.service_id||'', team_name: user.team_name||'' });
-    } else { setForm(EMPTY); }
-    setPhoneError('');
-  }, [mode, user]);
 
   const handle = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });

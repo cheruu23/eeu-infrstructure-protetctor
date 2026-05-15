@@ -25,10 +25,12 @@ export default function ElectricianDashboard() {
       setAssigned(a.data.requests);
       setCompleted(c.data.requests);
       setMyGroup(g.data.group);
-    } catch {}
+    } catch {
+      toast.show('Failed to load dashboard data', 'error');
+    }
   };
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => { fetchData(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const complete = async (id) => {
     if (!completeForm.service_id) return toast.show(t.enterServiceId, 'error');

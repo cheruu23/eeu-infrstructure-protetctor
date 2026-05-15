@@ -23,7 +23,6 @@ export default function AdminDashboard() {
   const [reports, setReports] = useState([]);
   const [serviceRequests, setServiceRequests] = useState([]);
   const [users, setUsers] = useState([]);
-  const [teams, setTeams] = useState([]);
   const [qrAsset, setQrAsset] = useState(null);
   const [newAsset, setNewAsset] = useState({ asset_code: '', asset_type: 'pole', description: '', location: '', latitude: '', longitude: '' });
   const [assignReport, setAssignReport] = useState({ id: null, team_id: '' });
@@ -56,14 +55,18 @@ export default function AdminDashboard() {
     try {
       const res = await api.get('/groups');
       setGroups(res.data.groups);
-    } catch {}
+    } catch {
+      // groups optional on first load
+    }
   };
 
   const fetchGroupMembers = async (groupId) => {
     try {
       const res = await api.get(`/groups/${groupId}/members`);
       setGroupMembers(prev => ({ ...prev, [groupId]: res.data.members }));
-    } catch {}
+    } catch {
+      // members load is best-effort
+    }
   };
 
   const fetchAll = async () => {
@@ -72,25 +75,22 @@ export default function AdminDashboard() {
       catch (e) { console.error(`fetchAll [${label}] error:`, e.response?.data?.message || e.message); return fallback; }
     };
 
-    const [s, i, r, sr, g] = await Promise.all([
+    const [s, i, r, sr] = await Promise.all([
       safe(() => api.get('/admin/stats'),            { data: {} },              'stats'),
       safe(() => api.get('/admin/infrastructure'),   { data: { assets: [] } },  'infra'),
       safe(() => api.get('/admin/reports'),          { data: { reports: [] } }, 'reports'),
       safe(() => api.get('/admin/service-requests'), { data: { requests: [] } },'service-requests'),
-      safe(() => api.get('/groups'),                 { data: { groups: [] } },  'groups'),
     ]);
 
     setStats(s.data);
     setInfrastructure(i.data.assets || []);
     setReports(r.data.reports || []);
     setServiceRequests(sr.data.requests || []);
-    setTeams((g.data.groups || []).map(grp => ({ id: grp.id, team_name: grp.name })));
-
     fetchUsers();
     fetchGroups();
   };
 
-  useEffect(() => { fetchAll(); }, []);
+  useEffect(() => { fetchAll(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const createAsset = async (e) => {
     e.preventDefault();
@@ -666,6 +666,7 @@ export default function AdminDashboard() {
         {/* User create/edit modal */}
         {userModal && (
           <UserModal
+            key={userModal === 'edit' ? String(editingUser?.id) : 'create'}
             mode={userModal}
             user={editingUser}
             onSave={handleSaveUser}

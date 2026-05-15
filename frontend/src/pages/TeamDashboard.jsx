@@ -16,10 +16,12 @@ export default function TeamDashboard() {
       const [a, c] = await Promise.all([api.get('/team/assigned'), api.get('/team/completed')]);
       setAssigned(a.data.requests);
       setCompleted(c.data.requests);
-    } catch {}
+    } catch {
+      toast.show('Failed to load requests', 'error');
+    }
   };
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => { fetchData(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const complete = async (id) => {
     if (!completeForm.service_id) return toast.show("Enter the citizen's Service ID", 'error');

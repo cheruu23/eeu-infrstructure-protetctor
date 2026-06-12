@@ -98,7 +98,7 @@ Ethiopian Electric Utility faced several operational challenges:
 
 ## System Architecture
 
-```
+\`\`\`
 ┌──────────────────┐     HTTP / REST API     ┌──────────────────┐
 │  React Frontend  │ ◄────────────────────► │  Express Backend  │
 │    (Vercel)      │                         │    (Render)       │
@@ -108,7 +108,7 @@ Ethiopian Electric Utility faced several operational challenges:
                                              │  MySQL Database   │
                                              │    (Aiven)        │
                                              └──────────────────┘
-```
+\`\`\`
 
 All protected routes use JWT authentication with role-based access control enforced at the middleware level.
 
@@ -146,15 +146,15 @@ All protected routes use JWT authentication with role-based access control enfor
 
 ### Installation
 
-```bash
+\`\`\`bash
 # 1. Clone the repository
 git clone https://github.com/cheruu23/eeu-infrstructure-protetctor.git
 cd eeu-infrstructure-protetctor
-```
+\`\`\`
 
 ### Backend Setup
 
-```bash
+\`\`\`bash
 cd backend
 npm install
 
@@ -163,11 +163,11 @@ cp .env.example .env
 
 npm run dev
 # Backend runs at http://localhost:5000
-```
+\`\`\`
 
 ### Frontend Setup
 
-```bash
+\`\`\`bash
 cd frontend
 npm install
 
@@ -176,7 +176,7 @@ echo "VITE_API_URL=http://localhost:5000/api" > .env
 
 npm run dev
 # Frontend runs at http://localhost:5173
-```
+\`\`\`
 
 ---
 
@@ -184,29 +184,29 @@ npm run dev
 
 ### Backend (`.env`)
 
-```env
+\`\`\`env
 PORT=5000
 DB_HOST=localhost
 DB_USER=root
 DB_PASSWORD=your_mysql_password
 DB_NAME=eeu_service_db
 JWT_SECRET=your_jwt_secret_key
-```
+\`\`\`
 
 For production on Render, also set:
 
-```env
+\`\`\`env
 DB_PORT=<aiven_port>
 DB_SSL=true
 DB_SSL_CA=<base64_encoded_ca_cert>
 FRONTEND_URL=https://your-app.vercel.app
-```
+\`\`\`
 
 ### Frontend (`.env`)
 
-```env
+\`\`\`env
 VITE_API_URL=https://eeu-backend.onrender.com/api
-```
+\`\`\`
 
 ---
 
@@ -292,7 +292,7 @@ VITE_API_URL=https://eeu-backend.onrender.com/api
 
 ## Database Schema
 
-```
+\`\`\`
 users                          infrastructure
 ├── id                         ├── id
 ├── name                       ├── asset_code (unique)
@@ -321,7 +321,7 @@ ratings
 ├── citizen_id → users.id
 ├── rating (1–5)
 └── feedback
-```
+\`\`\`
 
 ---
 
@@ -351,7 +351,7 @@ ratings
 
 ## Project Structure
 
-```
+\`\`\`
 eeu-service/
 ├── backend/
 │   ├── config/
@@ -390,7 +390,7 @@ eeu-service/
             ├── ElectricianDashboard.jsx
             ├── AdminDashboard.jsx
             └── ReportInfrastructure.jsx
-```
+\`\`\`
 
 ---
 
